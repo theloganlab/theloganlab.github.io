@@ -6,11 +6,21 @@
     <description>Recent content in Tags on The Logan Lab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 07 Jul 2022 21:21:40 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 08 Jul 2022 15:42:28 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>coldfusion</title>
+      <link>https://theloganlab.github.io/tags/coldfusion/</link>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/coldfusion/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>ctf</title>
       <link>https://theloganlab.github.io/tags/ctf/</link>
-      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/ctf/</guid>
       <description></description>
@@ -18,19 +28,9 @@
     </item>
     
     <item>
-      <title>eJPT-like</title>
-      <link>https://theloganlab.github.io/tags/ejpt-like/</link>
-      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/ejpt-like/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>hacking</title>
       <link>https://theloganlab.github.io/tags/hacking/</link>
-      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/hacking/</guid>
       <description></description>
@@ -40,9 +40,79 @@
     <item>
       <title>HTB</title>
       <link>https://theloganlab.github.io/tags/htb/</link>
-      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/htb/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>jsp</title>
+      <link>https://theloganlab.github.io/tags/jsp/</link>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/jsp/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>oscp-like</title>
+      <link>https://theloganlab.github.io/tags/oscp-like/</link>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/oscp-like/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>SeImpersonatePrivilege</title>
+      <link>https://theloganlab.github.io/tags/seimpersonateprivilege/</link>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/seimpersonateprivilege/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>windows</title>
+      <link>https://theloganlab.github.io/tags/windows/</link>
+      <pubDate>Fri, 08 Jul 2022 15:42:28 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/windows/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>apache</title>
+      <link>https://theloganlab.github.io/tags/apache/</link>
+      <pubDate>Fri, 08 Jul 2022 13:08:16 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/apache/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>eJPT-like</title>
+      <link>https://theloganlab.github.io/tags/ejpt-like/</link>
+      <pubDate>Fri, 08 Jul 2022 13:08:16 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/ejpt-like/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>tomcat</title>
+      <link>https://theloganlab.github.io/tags/tomcat/</link>
+      <pubDate>Fri, 08 Jul 2022 13:08:16 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/tomcat/</guid>
       <description></description>
       <content></content>
     </item>
@@ -63,16 +133,6 @@
       <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/printer/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>windows</title>
-      <link>https://theloganlab.github.io/tags/windows/</link>
-      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/windows/</guid>
       <description></description>
       <content></content>
     </item>
