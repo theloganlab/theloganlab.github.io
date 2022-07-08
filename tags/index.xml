@@ -6,7 +6,77 @@
     <description>Recent content in Tags on The Logan Lab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 06 Jul 2022 20:51:39 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 07 Jul 2022 21:21:40 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ctf</title>
+      <link>https://theloganlab.github.io/tags/ctf/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/ctf/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>eJPT-like</title>
+      <link>https://theloganlab.github.io/tags/ejpt-like/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/ejpt-like/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>hacking</title>
+      <link>https://theloganlab.github.io/tags/hacking/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/hacking/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>HTB</title>
+      <link>https://theloganlab.github.io/tags/htb/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/htb/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>print_nightmare</title>
+      <link>https://theloganlab.github.io/tags/print_nightmare/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/print_nightmare/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>printer</title>
+      <link>https://theloganlab.github.io/tags/printer/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/printer/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>windows</title>
+      <link>https://theloganlab.github.io/tags/windows/</link>
+      <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/tags/windows/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>aws</title>
       <link>https://theloganlab.github.io/tags/aws/</link>
@@ -18,41 +88,11 @@
     </item>
     
     <item>
-      <title>ctf</title>
-      <link>https://theloganlab.github.io/tags/ctf/</link>
-      <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/ctf/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>git</title>
       <link>https://theloganlab.github.io/tags/git/</link>
       <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/git/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>hacking</title>
-      <link>https://theloganlab.github.io/tags/hacking/</link>
-      <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/hacking/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>HTB</title>
-      <link>https://theloganlab.github.io/tags/htb/</link>
-      <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/htb/</guid>
       <description></description>
       <content></content>
     </item>
@@ -88,16 +128,6 @@
     </item>
     
     <item>
-      <title>eJPT-like</title>
-      <link>https://theloganlab.github.io/tags/ejpt-like/</link>
-      <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/ejpt-like/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>jenkins</title>
       <link>https://theloganlab.github.io/tags/jenkins/</link>
       <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
@@ -113,16 +143,6 @@
       <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
       
       <guid>https://theloganlab.github.io/tags/keepass/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>windows</title>
-      <link>https://theloganlab.github.io/tags/windows/</link>
-      <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
-      
-      <guid>https://theloganlab.github.io/tags/windows/</guid>
       <description></description>
       <content></content>
     </item>
