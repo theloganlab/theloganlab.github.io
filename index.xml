@@ -6,7 +6,317 @@
     <description>Recent content on The Logan Lab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 08 Jul 2022 15:42:28 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 09 Jul 2022 16:36:37 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HTB: RouterSpace</title>
+      <link>https://theloganlab.github.io/posts/routerspace/</link>
+      <pubDate>Sat, 09 Jul 2022 16:36:37 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/posts/routerspace/</guid>
+      <description>RouterSpace&amp;rsquo;s main challenge is the analysis of an Android application.
+We will be using anbox to debug the application and redirect the traffic through BurpSuite as it&amp;rsquo;s very simple to install and use compared to other programs as Genymotion.
+After some tests we will get command execution.
+And for root we will be abusing an outdated sudo version.
+Recon Nmap Nmap discovers two very common ports:
+❯ nmap -p- -sS --min-rate 5000 --open -v -n -Pn 10.</description>
+      <content>&lt;p&gt;&lt;strong&gt;RouterSpace&lt;/strong&gt;&amp;rsquo;s main challenge is the analysis of an Android application.&lt;/p&gt;
+&lt;p&gt;We will be using &lt;strong&gt;anbox&lt;/strong&gt; to debug the application and redirect the traffic through &lt;strong&gt;BurpSuite&lt;/strong&gt; as it&amp;rsquo;s very simple to install and use compared to other programs as &lt;strong&gt;Genymotion&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;After some tests we will get command execution.&lt;/p&gt;
+&lt;p&gt;And for root we will be abusing an outdated sudo version.&lt;/p&gt;
+&lt;h1 id=&#34;recon&#34;&gt;&lt;strong&gt;&lt;code&gt;Recon&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;h1 id=&#34;nmap&#34;&gt;Nmap&lt;/h1&gt;
+&lt;p&gt;Nmap discovers two very common ports:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nmap -p- -sS --min-rate &lt;span style=&#34;color:#ae81ff&#34;&gt;5000&lt;/span&gt; --open -v -n -Pn 10.129.77.48 -oG allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host discovery disabled &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;-Pn&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;. All addresses will be marked up and scan times may be slower.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Starting Nmap 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2022-07-09 16:55 -05
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Initiating SYN Stealth Scan at 16:55
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Scanning 10.129.77.48 &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;65535&lt;/span&gt; ports&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 80/tcp on 10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 22/tcp on 10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sendto in send_ip_packet_sd: sendto&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;5, packet, 44, 0, 10.129.77.48, 16&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; Operation not permitted
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Offending packet: TCP 10.10.14.161:38497 &amp;gt; 10.129.77.48:8152 S ttl&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;54&lt;/span&gt; id&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8016&lt;/span&gt; iplen&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;44&lt;/span&gt;  seq&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1503569865&lt;/span&gt; win&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1024&lt;/span&gt; &amp;lt;mss 1460&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Completed SYN Stealth Scan at 16:56, 26.43s elapsed &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;65535&lt;/span&gt; total ports&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.16s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65533&lt;/span&gt; filtered tcp ports &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;no-response&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PORT   STATE SERVICE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;22/tcp open  ssh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;80/tcp open  http
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Read data files from: /usr/bin/../share/nmap
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 26.59 seconds
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;           Raw packets sent: &lt;span style=&#34;color:#ae81ff&#34;&gt;131085&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;5.768MB&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; | Rcvd: &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;880B&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We are exporting the result in &lt;strong&gt;grepable format&lt;/strong&gt;, which is great to manage with &lt;strong&gt;regex&lt;/strong&gt; and get all the ports without needing to type them one by one:&lt;/p&gt;
+
+
+
+  &lt;div class=&#34;collapsable-code&#34;&gt;
+    &lt;input id=&#34;1&#34; type=&#34;checkbox&#34;  /&gt;
+    &lt;label for=&#34;1&#34;&gt;
+      &lt;span class=&#34;collapsable-code__language&#34;&gt;bash&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__title&#34;&gt;Here you have an useful function you can use for this manner&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__toggle&#34; data-label-expand=&#34;Show&#34; data-label-collapse=&#34;Hide&#34;&gt;&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;pre class=&#34;language-bash&#34; &gt;&lt;code&gt;
+extractPorts () {
+	ports=&amp;#34;$(cat $1 | grep -oP &amp;#39;\d{1,5}/open&amp;#39; | awk &amp;#39;{print $1}&amp;#39; FS=&amp;#39;/&amp;#39; | xargs | tr &amp;#39; &amp;#39; &amp;#39;,&amp;#39;)&amp;#34;
+	ip_address=&amp;#34;$(cat $1 | grep initiated | awk &amp;#39;NF{print $NF}&amp;#39;)&amp;#34;
+	echo -e &amp;#34;\n[*] Extracting information...\n&amp;#34; &amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] IP Address: $ip_address&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] Open ports: $ports\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo $ports | tr -d &amp;#39;\n&amp;#39; | xclip -sel clip
+	echo -e &amp;#34;[*] Ports copied to clipboard\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ extractPorts allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Extracting information...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; IP Address: 10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Open ports: 22,80
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Ports copied to clipboard
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With parameters &lt;strong&gt;-sCV&lt;/strong&gt; we can take a deeper look into these ports:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nmap -sCV -p22,80 10.129.77.48 -oN targeted
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Starting Nmap 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2022-07-09 17:01 -05
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.16s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PORT   STATE SERVICE VERSION
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;22/tcp open  ssh     &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| fingerprint-strings:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   NULL:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_    SSH-2.0-RouterSpace Packet Filtering V1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| ssh-hostkey:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; f4:e4:c8:0a:a6:af:66:93:af:69:5a:a9:bc:75:f9:0c &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 7f:05:cd:8c:42:7b:a9:4a:b2:e6:35:2c:c4:59:78:02 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 2f:d7:a8:8b:be:2d:10:b0:c9:b4:29:52:a8:94:24:78 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;80/tcp open  http
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-trane-info: Problem with XML parsing of /evox/about
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| fingerprint-strings:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   FourOhFourRequest:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     HTTP/1.1 &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; OK
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     X-Powered-By: RouterSpace
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     X-Cdn: RouterSpace-66870
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     Content-Type: text/html; charset&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;utf-8
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     Content-Length: &lt;span style=&#34;color:#ae81ff&#34;&gt;67&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     ETag: W/&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;43-BxRiqCkXp6FsCaLusAU1PxuCEws&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     Date: Sat, &lt;span style=&#34;color:#ae81ff&#34;&gt;09&lt;/span&gt; Jul &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt; 22:01:20 GMT
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     Connection: close
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|     Suspicious activity detected !!! &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;RequestID: Ene o h5jc eStT &lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;......
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;downloading-apk-file&#34;&gt;Downloading APK file&lt;/h1&gt;
+&lt;p&gt;There&amp;rsquo;s not anything that we can do with the &lt;strong&gt;SSH&lt;/strong&gt; port for now so let&amp;rsquo;s take a look at the &lt;strong&gt;webserver&lt;/strong&gt;:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou1.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;The website is all about an application we can download:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou2.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou3.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;h1 id=&#34;debugging-the-app&#34;&gt;Debugging the app&lt;/h1&gt;
+&lt;p&gt;Let&amp;rsquo;s download it, we are going to emulate and debug this apk, so we need some dependencies installed first:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ sudo apt install adb snapd
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The program we are going to use is &lt;strong&gt;Anbox&lt;/strong&gt;, you can install it this way:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ snap install --devmode --beta anbox
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now after we restart the session we should have it fully installed. I&amp;rsquo;m using &lt;strong&gt;ParrotOS&lt;/strong&gt; so I can find it here:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/par9.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;And this is what it looks like:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou4.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Next up we have to import the application:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ adb install RouterSpace.apk
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now we should see it inside &lt;strong&gt;Anbox&lt;/strong&gt; and we can open it:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou5.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou13.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;h1 id=&#34;foothold&#34;&gt;&lt;strong&gt;&lt;code&gt;Foothold&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;h1 id=&#34;inspection-with-burp&#34;&gt;Inspection with Burp&lt;/h1&gt;
+&lt;p&gt;We don&amp;rsquo;t know what this apk is doing in the background so we are going to intercept the traffic with &lt;strong&gt;Burp&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;But first let&amp;rsquo;s configure the proxy:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ adb shell settings put global http_proxy 10.10.14.161:8001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You can check if it&amp;rsquo;s correctly done:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ db shell settings list global http_proxy | grep proxy
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;global_http_proxy_exclusion_list&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;global_http_proxy_host&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;10.10.14.161
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;global_http_proxy_port&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;global_proxy_pac_url&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;http_proxy&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;10.10.14.161:8001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And also let&amp;rsquo;s add this configuration to &lt;strong&gt;Burp&lt;/strong&gt;:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou7.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Now all the trafic from the apk will go through &lt;strong&gt;Burp&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The app is very simple:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou6.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s switch the &lt;strong&gt;Intercept&lt;/strong&gt; on and see what&amp;rsquo;s going on:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou8.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It&amp;rsquo;s sending a request to &lt;strong&gt;routerspace.htb&lt;/strong&gt;. Our system doesn&amp;rsquo;t know what this means or where does it belong to. So we have to add it to our &lt;strong&gt;/etc/hosts&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;127.0.0.1	localhost
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;127.0.1.1	h4ckn3t
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;10.129.77.48    routerspace.htb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# The following lines are desirable for IPv6 capable hosts&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;::1     localhost ip6-localhost ip6-loopback
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ff02::1 ip6-allnodes
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ff02::2 ip6-allrouters
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Having this set let&amp;rsquo;s send the request to the &lt;strong&gt;Repeater&lt;/strong&gt; and do some tests:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou9.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It doesn&amp;rsquo;t seem to be doing much, maybe if we put our IP we get a connection:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou10.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ tcpdump -i tun0 icmp -n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump: verbose output suppressed, use -v&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;v&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;... &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; full protocol decode
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;listening on tun0, link-type RAW &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Raw IP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;, snapshot length &lt;span style=&#34;color:#ae81ff&#34;&gt;262144&lt;/span&gt; bytes
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;But it&amp;rsquo;s not the case.&lt;/p&gt;
+&lt;h1 id=&#34;command-execution&#34;&gt;Command execution&lt;/h1&gt;
+&lt;p&gt;Maybe our input is encapsulated inside a command, we can try to breakout from this command and execute another one:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou11.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It works! We are executing commands as &lt;strong&gt;paul&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Although we can&amp;rsquo;t send us a reverse shell with a oneliner in bash because of a firewall, let&amp;rsquo;s remember that &lt;strong&gt;SSH port&lt;/strong&gt; (22) is opened.&lt;/p&gt;
+&lt;p&gt;Therefore we can try to write our public key into the &lt;strong&gt;authorized_keys&lt;/strong&gt; file inside the &lt;strong&gt;/.ssh&lt;/strong&gt; of &lt;strong&gt;paul&lt;/strong&gt;&amp;rsquo;s home directory and then we will be able to connect using SSH without any password.&lt;/p&gt;
+&lt;p&gt;First let&amp;rsquo;s generate our key:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ssh-keygen
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Generating public/private rsa key pair.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Enter file in which to save the key &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;/root/.ssh/id_rsa&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Enter passphrase &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;empty &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; no passphrase&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Enter same passphrase again:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Your identification has been saved in /root/.ssh/id_rsa
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Your public key has been saved in /root/.ssh/id_rsa.pub
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;The key fingerprint is:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SHA256:xAqnRGwcx1+/LWyjDEhJaK4vMwUDpyWIBI+b51SOFrE root@h4ckn3t
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;The key&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;s randomart image is:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+---&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;RSA 3072&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;----+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|*..oo+.          |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;oo+*.o.  .      |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|.*E++..oo. .     |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|.oo*.+oo.   .    |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|o &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;+o...S  . o   |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;. . . .   * .  |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|  .o     o o o   |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|  + .     o      |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   +             |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+----&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;SHA256&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;-----+
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;id_rsa  id_rsa.pub
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;strong&gt;id_rsa.pub&lt;/strong&gt; is what we need so we can copy its content to the clipboard and write it to the machine in the injection:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou12.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It looks good, now let&amp;rsquo;s connect as user paul with SSH:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ssh paul@10.129.77.48
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;The authenticity of host &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;10.129.77.48 (10.129.77.48)&amp;#39;&lt;/span&gt; can&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;t be established.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;ED25519 key fingerprint is SHA256:iwHQgWKu/VDyjka2Y4j2V8P2Rk6K13HuNT4JTnITIDk.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;This key is not known by any other names
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Warning: Permanently added &amp;#39;&lt;/span&gt;10.129.77.48&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; to the list of known hosts.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Welcome to Ubuntu 20.04.3 LTS &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;GNU/Linux 5.4.0-90-generic x86_64&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:~$
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Perfect! And we also have the &lt;strong&gt;user.txt&lt;/strong&gt; right here:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:~$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;snap  user.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:~$ cat user.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;821fd23636e96802****************
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now let&amp;rsquo;s move on to the &lt;strong&gt;root.txt&lt;/strong&gt;.&lt;/p&gt;
+&lt;h1 id=&#34;privesc&#34;&gt;&lt;strong&gt;&lt;code&gt;Privesc&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;h1 id=&#34;abusing-sudo-cve-2021-3156&#34;&gt;Abusing sudo (CVE-2021-3156)&lt;/h1&gt;
+&lt;p&gt;With &lt;strong&gt;linpeas.sh&lt;/strong&gt; we will make a quick enumeration of the machine:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou16.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Although we cannot use &lt;strong&gt;wget&lt;/strong&gt; because of the firewall, we can quickly copy the content of the file with &lt;strong&gt;xclip&lt;/strong&gt; and write it manually with &lt;strong&gt;nano&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ nano linpeas.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ chmod +x linpeas.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou17.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou18.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;The sudo version is outdated and probably has some vulnerabilities, so let&amp;rsquo;s look for exploits:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/rou14.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;This one looks strong. We just have to upload it, compile and execute it.
+Just as before, we can write each file manually.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ nano exploit.c
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ nano Makefile
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ nano shellcode.c
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ make
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir libnss_x
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cc -O3 -shared -nostdlib -o libnss_x/x.so.2 shellcode.c
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cc -O3 -o exploit exploit.c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This should&amp;rsquo;ve created an exploit that will give us access to root:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exploit      systemd-private-60ad4c204f3148ffbd2fbc47532774f3-systemd-logind.service-JdHSCg
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exploit.c    systemd-private-60ad4c204f3148ffbd2fbc47532774f3-systemd-resolved.service-7tkzci
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;libnss_x     systemd-private-60ad4c204f3148ffbd2fbc47532774f3-systemd-timesyncd.service-ksdFCh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Makefile     vmware-root_691-4013264459
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;shellcode.c
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;paul@routerspace:/tmp$ ./exploit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;# whoami
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;#
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Amazing! Now we can read &lt;strong&gt;root.txt&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;# cat /root/root.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0b91559a87dc5b******************
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>HTB: Arctic</title>
       <link>https://theloganlab.github.io/posts/arctic/</link>
@@ -434,7 +744,7 @@ Recon Nmap The nmap scan looking for opened ports finds only one:
     </item>
     
     <item>
-      <title>Driver - Write up</title>
+      <title>HTB: Driver</title>
       <link>https://theloganlab.github.io/posts/driver/</link>
       <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
       
@@ -769,7 +1079,7 @@ If the folder containing the .scf file is opened with File Explorer, the .scf wi
     </item>
     
     <item>
-      <title>Epsilon - Write up</title>
+      <title>HTB: Epsilon</title>
       <link>https://theloganlab.github.io/posts/epsilon/</link>
       <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
       
@@ -1373,7 +1683,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Jeeves - Write up</title>
+      <title>HTB: Jeeves</title>
       <link>https://theloganlab.github.io/posts/jeeves/</link>
       <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
       
@@ -1714,7 +2024,7 @@ If we look for the &lt;strong&gt;root.txt&lt;/strong&gt; in its usual path it&am
     </item>
     
     <item>
-      <title>Horizontall - Write up</title>
+      <title>HTB: Horizontall</title>
       <link>https://theloganlab.github.io/posts/horizontall/</link>
       <pubDate>Mon, 04 Jul 2022 21:26:44 -0500</pubDate>
       
@@ -2093,7 +2403,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Return - Write up</title>
+      <title>HTB: Return</title>
       <link>https://theloganlab.github.io/posts/return/</link>
       <pubDate>Mon, 04 Jul 2022 12:35:18 -0500</pubDate>
       
@@ -2371,7 +2681,7 @@ Port 80 is opened offering a &lt;strong&gt;HTTP&lt;/strong&gt; server:&lt;/p&gt;
     </item>
     
     <item>
-      <title>Validation - Write up</title>
+      <title>HTB: Validation</title>
       <link>https://theloganlab.github.io/posts/validation/</link>
       <pubDate>Wed, 22 Jun 2022 21:03:46 -0500</pubDate>
       
@@ -2570,9 +2880,9 @@ extractPorts () {
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://theloganlab.github.io/about/</guid>
-      <description>This web site is managed by l0gan334, a big fan of cybersecurity and programming. I&amp;rsquo;m just trying to build a public record of what I&amp;rsquo;m learning and creating so I&amp;rsquo;m here just having fun.</description>
-      <content>&lt;p&gt;This web site is managed by l0gan334, a big fan of cybersecurity and programming.
-I&amp;rsquo;m just trying to build a public record of what I&amp;rsquo;m learning and creating so I&amp;rsquo;m here just having fun.&lt;/p&gt;
+      <description>This website is hosted by l0gan334, a big fan of cybersecurity and programming. I&amp;rsquo;m just building a public record of what I&amp;rsquo;m learning and creating so I&amp;rsquo;m here just having fun.</description>
+      <content>&lt;p&gt;This website is hosted by l0gan334, a big fan of cybersecurity and programming.
+I&amp;rsquo;m just building a public record of what I&amp;rsquo;m learning and creating so I&amp;rsquo;m here just having fun.&lt;/p&gt;
 
   &lt;img src=&#34;https://theloganlab.github.io/img/user.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
 

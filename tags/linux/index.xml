@@ -8,7 +8,7 @@
     <language>en-us</language>
     <lastBuildDate>Wed, 06 Jul 2022 20:51:39 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Epsilon - Write up</title>
+      <title>HTB: Epsilon</title>
       <link>https://theloganlab.github.io/posts/epsilon/</link>
       <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
       
@@ -612,7 +612,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Horizontall - Write up</title>
+      <title>HTB: Horizontall</title>
       <link>https://theloganlab.github.io/posts/horizontall/</link>
       <pubDate>Mon, 04 Jul 2022 21:26:44 -0500</pubDate>
       
@@ -991,7 +991,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Validation - Write up</title>
+      <title>HTB: Validation</title>
       <link>https://theloganlab.github.io/posts/validation/</link>
       <pubDate>Wed, 22 Jun 2022 21:03:46 -0500</pubDate>
       

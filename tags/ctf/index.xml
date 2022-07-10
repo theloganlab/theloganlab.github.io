@@ -434,7 +434,7 @@ Recon Nmap The nmap scan looking for opened ports finds only one:
     </item>
     
     <item>
-      <title>Driver - Write up</title>
+      <title>HTB: Driver</title>
       <link>https://theloganlab.github.io/posts/driver/</link>
       <pubDate>Thu, 07 Jul 2022 21:21:40 -0500</pubDate>
       
@@ -769,7 +769,7 @@ If the folder containing the .scf file is opened with File Explorer, the .scf wi
     </item>
     
     <item>
-      <title>Epsilon - Write up</title>
+      <title>HTB: Epsilon</title>
       <link>https://theloganlab.github.io/posts/epsilon/</link>
       <pubDate>Wed, 06 Jul 2022 20:51:39 -0500</pubDate>
       
@@ -1373,7 +1373,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Jeeves - Write up</title>
+      <title>HTB: Jeeves</title>
       <link>https://theloganlab.github.io/posts/jeeves/</link>
       <pubDate>Wed, 06 Jul 2022 18:45:24 -0500</pubDate>
       
@@ -1714,7 +1714,7 @@ If we look for the &lt;strong&gt;root.txt&lt;/strong&gt; in its usual path it&am
     </item>
     
     <item>
-      <title>Horizontall - Write up</title>
+      <title>HTB: Horizontall</title>
       <link>https://theloganlab.github.io/posts/horizontall/</link>
       <pubDate>Mon, 04 Jul 2022 21:26:44 -0500</pubDate>
       
@@ -2093,7 +2093,7 @@ extractPorts () {
     </item>
     
     <item>
-      <title>Return - Write up</title>
+      <title>HTB: Return</title>
       <link>https://theloganlab.github.io/posts/return/</link>
       <pubDate>Mon, 04 Jul 2022 12:35:18 -0500</pubDate>
       
@@ -2371,7 +2371,7 @@ Port 80 is opened offering a &lt;strong&gt;HTTP&lt;/strong&gt; server:&lt;/p&gt;
     </item>
     
     <item>
-      <title>Validation - Write up</title>
+      <title>HTB: Validation</title>
       <link>https://theloganlab.github.io/posts/validation/</link>
       <pubDate>Wed, 22 Jun 2022 21:03:46 -0500</pubDate>
       
