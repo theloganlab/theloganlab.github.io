@@ -343,7 +343,7 @@ If we look for the &lt;strong&gt;root.txt&lt;/strong&gt; in its usual path it&am
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With the parameter &lt;strong&gt;/r&lt;/strong&gt; we find the alternate data streams, where the &lt;strong&gt;root.txt&lt;/strong&gt; is.&lt;/p&gt;
 &lt;p&gt;Using &lt;strong&gt;more&lt;/strong&gt; we can get its content:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\U&lt;/span&gt;sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\A&lt;/span&gt;dministrator&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&amp;gt; more &amp;lt; hm.txt:root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a60648cec41c6ac92530
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a606****************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;That&amp;rsquo;s it for this machine. See you next time!&lt;/p&gt;
 </content>
     </item>

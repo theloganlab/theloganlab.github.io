@@ -763,7 +763,7 @@ If the folder containing the .scf file is opened with File Explorer, the .scf wi
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;*Evil-WinRM* PS C:sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\A&lt;/span&gt;dministrator&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&amp;gt; type root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;192c8e9fba8ecc1c92901f2bd9892084
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;192c8e9fba8ecc1*****************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
 </content>
     </item>
@@ -1260,7 +1260,7 @@ extractPorts () {
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:~$ ls
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user.txt
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:~$ cat user.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a78de636a8ec1c5a51720d733ec29a3f
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a78de636a8ec1*******************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;First part is done, now let&amp;rsquo;s move on to the privesc.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;&lt;code&gt;Privilege escalation&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;We will deploy &lt;strong&gt;pspy&lt;/strong&gt; to enumerate the machine:&lt;/p&gt;
@@ -1367,7 +1367,7 @@ extractPorts () {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:/tmp/opt/backups/checksum$ ls
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;docker-compose.yml  lambda.sh  root.txt  src
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tom@epsilon:/tmp/opt/backups/checksum$ cat root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3abf016adaf60d863a43b4fcc061562e
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3abf016adaf60d******************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;See you next time!&lt;/p&gt;
 </content>
     </item>
@@ -1708,7 +1708,7 @@ If we look for the &lt;strong&gt;root.txt&lt;/strong&gt; in its usual path it&am
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With the parameter &lt;strong&gt;/r&lt;/strong&gt; we find the alternate data streams, where the &lt;strong&gt;root.txt&lt;/strong&gt; is.&lt;/p&gt;
 &lt;p&gt;Using &lt;strong&gt;more&lt;/strong&gt; we can get its content:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\U&lt;/span&gt;sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\A&lt;/span&gt;dministrator&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&amp;gt; more &amp;lt; hm.txt:root.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a60648cec41c6ac92530
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;afbc5bd4b615a606****************
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;That&amp;rsquo;s it for this machine. See you next time!&lt;/p&gt;
 </content>
     </item>
