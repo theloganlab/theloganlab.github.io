@@ -14,13 +14,13 @@
       
       <guid>https://theloganlab.github.io/posts/routerspace/</guid>
       <description>RouterSpace&amp;rsquo;s main challenge is the analysis of an Android application.
-We will be using anbox to debug the application and redirect the traffic through BurpSuite as it&amp;rsquo;s very simple to install and use compared to other programs as Genymotion.
+We will be using Anbox to debug the application and redirect the traffic through BurpSuite as it&amp;rsquo;s very simple to install and use compared to other programs as Genymotion.
 After some tests we will get command execution.
 And for root we will be abusing an outdated sudo version.
 Recon Nmap Nmap discovers two very common ports:
 ❯ nmap -p- -sS --min-rate 5000 --open -v -n -Pn 10.</description>
       <content>&lt;p&gt;&lt;strong&gt;RouterSpace&lt;/strong&gt;&amp;rsquo;s main challenge is the analysis of an Android application.&lt;/p&gt;
-&lt;p&gt;We will be using &lt;strong&gt;anbox&lt;/strong&gt; to debug the application and redirect the traffic through &lt;strong&gt;BurpSuite&lt;/strong&gt; as it&amp;rsquo;s very simple to install and use compared to other programs as &lt;strong&gt;Genymotion&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;We will be using &lt;strong&gt;Anbox&lt;/strong&gt; to debug the application and redirect the traffic through &lt;strong&gt;BurpSuite&lt;/strong&gt; as it&amp;rsquo;s very simple to install and use compared to other programs as &lt;strong&gt;Genymotion&lt;/strong&gt;.&lt;/p&gt;
 &lt;p&gt;After some tests we will get command execution.&lt;/p&gt;
 &lt;p&gt;And for root we will be abusing an outdated sudo version.&lt;/p&gt;
 &lt;h1 id=&#34;recon&#34;&gt;&lt;strong&gt;&lt;code&gt;Recon&lt;/code&gt;&lt;/strong&gt;&lt;/h1&gt;
