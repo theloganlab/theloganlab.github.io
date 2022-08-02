@@ -2,6 +2,114 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://theloganlab.github.io/tags/bit_flipper_attack/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/lazy/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/linux/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/padding_oracle_attack/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/path_hijacking/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/</loc>
+    <lastmod>2022-07-19T21:44:55-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/curl/</loc>
+    <lastmod>2022-07-16T11:17:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/gnu_screen/</loc>
+    <lastmod>2022-07-16T11:17:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/haircut/</loc>
+    <lastmod>2022-07-16T11:17:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/ssrf/</loc>
+    <lastmod>2022-07-16T11:17:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/apparmor/</loc>
+    <lastmod>2022-07-14T21:20:19-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/capability/</loc>
+    <lastmod>2022-07-14T21:20:19-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/nunchucks/</loc>
+    <lastmod>2022-07-14T21:20:19-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/perl/</loc>
+    <lastmod>2022-07-14T21:20:19-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/ssti/</loc>
+    <lastmod>2022-07-14T21:20:19-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/dnsadmins/</loc>
+    <lastmod>2022-07-13T14:36:46-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/resolute/</loc>
+    <lastmod>2022-07-13T14:36:46-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/information_leakage/</loc>
+    <lastmod>2022-07-13T14:36:46-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/rpc/</loc>
+    <lastmod>2022-07-13T14:36:46-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/windows/</loc>
+    <lastmod>2022-07-13T14:36:46-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/dumping_hashes/</loc>
+    <lastmod>2022-07-13T11:05:50-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/kotarak/</loc>
+    <lastmod>2022-07-13T11:05:50-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/malicious_war/</loc>
+    <lastmod>2022-07-13T11:05:50-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/tomcat/</loc>
+    <lastmod>2022-07-13T11:05:50-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/wget/</loc>
+    <lastmod>2022-07-13T11:05:50-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/crontab/</loc>
+    <lastmod>2022-07-12T15:35:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/deserialization/</loc>
+    <lastmod>2022-07-12T15:35:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/celest/</loc>
+    <lastmod>2022-07-12T15:35:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/nodejs/</loc>
+    <lastmod>2022-07-12T15:35:34-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/drupal/</loc>
+    <lastmod>2022-07-11T19:33:45-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/h2_database/</loc>
+    <lastmod>2022-07-11T19:33:45-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/htb/</loc>
+    <lastmod>2022-07-11T19:33:45-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/posts/hawk/</loc>
+    <lastmod>2022-07-11T19:33:45-05:00</lastmod>
+  </url><url>
+    <loc>https://theloganlab.github.io/tags/openssl/</loc>
+    <lastmod>2022-07-11T19:33:45-05:00</lastmod>
+  </url><url>
     <loc>https://theloganlab.github.io/tags/anbox/</loc>
     <lastmod>2022-07-09T16:36:37-05:00</lastmod>
   </url><url>
@@ -9,9 +117,6 @@
     <lastmod>2022-07-09T16:36:37-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/tags/file_inspection/</loc>
-    <lastmod>2022-07-09T16:36:37-05:00</lastmod>
-  </url><url>
-    <loc>https://theloganlab.github.io/tags/htb/</loc>
     <lastmod>2022-07-09T16:36:37-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/posts/routerspace/</loc>
@@ -23,16 +128,7 @@
     <loc>https://theloganlab.github.io/tags/mobile_app/</loc>
     <lastmod>2022-07-09T16:36:37-05:00</lastmod>
   </url><url>
-    <loc>https://theloganlab.github.io/posts/</loc>
-    <lastmod>2022-07-09T16:36:37-05:00</lastmod>
-  </url><url>
     <loc>https://theloganlab.github.io/tags/sudo/</loc>
-    <lastmod>2022-07-09T16:36:37-05:00</lastmod>
-  </url><url>
-    <loc>https://theloganlab.github.io/tags/</loc>
-    <lastmod>2022-07-09T16:36:37-05:00</lastmod>
-  </url><url>
-    <loc>https://theloganlab.github.io/</loc>
     <lastmod>2022-07-09T16:36:37-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/tags/coldfusion/</loc>
@@ -56,9 +152,6 @@
     <loc>https://theloganlab.github.io/tags/seimpersonateprivilege/</loc>
     <lastmod>2022-07-08T15:42:28-05:00</lastmod>
   </url><url>
-    <loc>https://theloganlab.github.io/tags/windows/</loc>
-    <lastmod>2022-07-08T15:42:28-05:00</lastmod>
-  </url><url>
     <loc>https://theloganlab.github.io/tags/apache/</loc>
     <lastmod>2022-07-08T13:08:16-05:00</lastmod>
   </url><url>
@@ -66,9 +159,6 @@
     <lastmod>2022-07-08T13:08:16-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/posts/jerry/</loc>
-    <lastmod>2022-07-08T13:08:16-05:00</lastmod>
-  </url><url>
-    <loc>https://theloganlab.github.io/tags/tomcat/</loc>
     <lastmod>2022-07-08T13:08:16-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/posts/driver/</loc>
@@ -90,9 +180,6 @@
     <lastmod>2022-07-06T20:51:39-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/tags/jwt/</loc>
-    <lastmod>2022-07-06T20:51:39-05:00</lastmod>
-  </url><url>
-    <loc>https://theloganlab.github.io/tags/linux/</loc>
     <lastmod>2022-07-06T20:51:39-05:00</lastmod>
   </url><url>
     <loc>https://theloganlab.github.io/tags/alternate_data_streams/</loc>

